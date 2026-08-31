@@ -16,7 +16,7 @@
     }
 
     .container {
-      max-width: 960px;
+      max-width: 980px;
       margin: 30px auto;
       background: var(--bg-card);
       border-radius: var(--radius-md);
@@ -30,7 +30,7 @@
       align-items: center;
       justify-content: space-between;
       margin-bottom: 20px;
-      gap: 15px;
+      gap: 12px;
       flex-wrap: wrap;
     }
 
@@ -56,7 +56,7 @@
       padding: 0 12px;
       font-family: inherit;
       font-size: 13px;
-      background: #fff;
+      background: var(--bg-card);
       color: var(--text-main);
       outline: none;
       transition: var(--transition);
@@ -85,11 +85,11 @@
       border-spacing: 0;
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
-      min-width: 680px;
+      min-width: 720px;
     }
 
     thead th {
-      background: var(--bg-page);
+      background: var(--bg-alt);
       font-size: 10px;
       font-weight: 700;
       color: var(--text-muted);
@@ -112,7 +112,7 @@
     }
 
     tbody tr:hover {
-      background: var(--bg-alt);
+      background: var(--row-hover);
     }
 
     .val-accent {
@@ -164,7 +164,7 @@
       padding: 12px 16px;
       text-align: right;
       border-top: 1px solid var(--border);
-      background: var(--bg-page);
+      background: var(--bg-alt);
     }
 
     /* ===== Graphique annuel ===== */
@@ -183,6 +183,7 @@
       justify-content: space-between;
       margin-bottom: 16px;
       gap: 10px;
+      flex-wrap: wrap;
     }
 
     .chart-header h2 {
@@ -277,14 +278,20 @@
   <div class="container">
     <div class="header-row">
       <h1>📋 Historique des Feuilles d'Heures</h1>
-      <a href="index.html" class="btn primary no-print">+ Nouvelle saisie</a>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button type="button" class="btn secondary sm" onclick="exporterAnneeCSV()">📈 Exporter l'année (CSV)</button>
+        <button type="button" class="btn secondary sm" onclick="exportGlobalBackup()">💾 Sauvegarde totale</button>
+        <a href="index.html" class="btn primary sm">+ Nouvelle saisie</a>
+      </div>
     </div>
 
     <!-- Graphique annuel -->
     <div class="chart-card no-print">
       <div class="chart-header">
         <h2>📈 Heures travaillées par mois</h2>
-        <select id="chartAnnee" onchange="renderChart()" style="height:32px; border:1px solid var(--border); border-radius:6px; padding:0 8px; font-family:inherit; font-size:12px; font-weight:600;"></select>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <select id="chartAnnee" onchange="renderChart()" style="height:32px; border:1px solid var(--border); border-radius:6px; padding:0 8px; font-family:inherit; font-size:12px; font-weight:600; background:var(--bg-card); color:var(--text-main);"></select>
+        </div>
       </div>
       <div class="chart-bars" id="chartBars"></div>
       <div class="chart-legend">
@@ -296,7 +303,7 @@
 
     <!-- Filtres -->
     <div class="filter-bar no-print">
-      <input type="text" id="searchInput" placeholder="🔍 Rechercher par nom ou prénom…" oninput="renderTable()" />
+      <input type="text" id="searchInput" placeholder="🔍 Rechercher par nom, prénom ou mois…" oninput="renderTable()" />
       <select id="filterAnnee" onchange="renderTable()">
         <option value="">Toutes les années</option>
       </select>
@@ -316,7 +323,7 @@
         if (!key || !key.startsWith("heures_v2_")) continue;
         try {
           const data = JSON.parse(localStorage.getItem(key));
-          const parts = key.split("_"); // ["heures", "v2", moisIdx, annee]
+          const parts = key.split("_");
           const moisIdx = parseInt(parts[2]);
           const annee = parts[3];
           if (isNaN(moisIdx) || !annee || annee.length !== 4) continue;
@@ -498,6 +505,43 @@
       const key = getStorageKey(mois, annee);
       localStorage.setItem("heures_nav", JSON.stringify({ mois: String(mois), annee: String(annee) }));
       window.location.href = "index.html";
+    }
+
+    function exporterAnneeCSV() {
+      const annee = document.getElementById("chartAnnee").value || new Date().getFullYear();
+      let csv = "Mois;Nom;Prenom;Jours Travailles;Total Heures;Heures Sup;Kilometres\n";
+
+      for (let m = 0; m <= 11; m++) {
+        const key = getStorageKey(m, annee);
+        const raw = localStorage.getItem(key);
+        if (raw) {
+          try {
+            const data = JSON.parse(raw);
+            let km = 0, jCount = 0;
+            for (let j = 1; j <= 31; j++) {
+              km += parseFloat(data[`kms_${j}`] || 0) || 0;
+              if (data[`total_${j}`] && data[`total_${j}`] !== "00:00") jCount++;
+            }
+            csv += [
+              `"${MOIS_NOMS[m]}"`,
+              `"${(data.nom || "").replace(/"/g, '""')}"`,
+              `"${(data.prenom || "").replace(/"/g, '""')}"`,
+              jCount,
+              `"${data.totalMois || "00:00"}"`,
+              `"${data.heuresSup || "00:00"}"`,
+              km.toFixed(1)
+            ].join(";") + "\n";
+          } catch (e) {}
+        }
+      }
+
+      const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+      const link = Object.assign(document.createElement("a"), {
+        href: URL.createObjectURL(blob),
+        download: `recapitulatif_annuel_${annee}.csv`
+      });
+      link.click();
+      showToast(`Export annuel ${annee} généré !`, "success");
     }
 
     function initHistory() {

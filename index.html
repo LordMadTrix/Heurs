@@ -10,11 +10,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="shared.css" />
   <style>
-    :root {
-      --weekend-bg: #f1f5f9;
-      --row-hover: #f8fafc;
-    }
-
     body {
       background: var(--bg-page);
       font-size: 13px;
@@ -26,31 +21,39 @@
       max-width: 210mm;
       width: 100%;
       min-height: 297mm;
-      margin: 30px auto;
-      padding: 12mm 15mm;
-      background: #ffffff;
+      margin: 25px auto;
+      padding: 12mm 14mm;
+      background: var(--bg-card);
       box-shadow: var(--shadow-lg);
       border-radius: var(--radius-md);
       position: relative;
+      border: 1px solid var(--border);
     }
 
-    /* Scroll horizontal du tableau sur petits écrans */
-    .table-scroll {
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      border-radius: var(--radius-sm);
-      margin-bottom: 20px;
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      gap: 16px;
     }
 
-    .table-scroll table {
-      min-width: 720px;
+    .company-logo {
+      max-height: 52px;
+      max-width: 170px;
+      object-fit: contain;
+      display: none;
+    }
+
+    .title-wrap {
+      flex: 1;
+      text-align: center;
     }
 
     h1 {
-      font-size: 20px;
+      font-size: 18px;
       color: var(--primary);
-      text-align: center;
-      margin: 0 0 20px;
+      margin: 0;
       font-weight: 700;
       letter-spacing: -0.02em;
       text-transform: uppercase;
@@ -59,19 +62,18 @@
     .header-form {
       display: grid;
       grid-template-columns: 1fr 1fr 1.2fr;
-      gap: 15px;
-      margin-bottom: 20px;
-      background: #ffffff;
-      padding: 14px 18px;
+      gap: 14px;
+      margin-bottom: 16px;
+      background: var(--bg-alt);
+      padding: 12px 16px;
       border-radius: var(--radius-md);
       border: 1px solid var(--border);
-      box-shadow: var(--shadow-sm);
     }
 
     .header-form .field {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 3px;
     }
 
     .header-form .field label {
@@ -85,13 +87,13 @@
     .header-form input,
     .header-form select {
       width: 100%;
-      height: 36px;
+      height: 34px;
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       padding: 0 10px;
       font-family: inherit;
       font-size: 13px;
-      background: #fff;
+      background: var(--bg-card);
       transition: var(--transition);
       color: var(--text-main);
     }
@@ -104,6 +106,13 @@
     }
 
     /* Tableau */
+    .table-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: var(--radius-sm);
+      margin-bottom: 16px;
+    }
+
     table {
       width: 100%;
       border-collapse: separate;
@@ -112,29 +121,30 @@
       font-size: 11px;
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
+      min-width: 780px;
     }
 
     thead th {
       position: sticky;
       top: 0;
       z-index: 10;
-      background: #f8fafc;
+      background: var(--bg-alt);
       font-weight: 600;
       color: var(--text-muted);
       text-transform: uppercase;
       font-size: 9px;
-      letter-spacing: 0.05em;
-      height: 36px;
+      letter-spacing: 0.04em;
+      height: 34px;
       border-bottom: 1px solid var(--border);
       border-right: 1px solid var(--border);
-      padding: 4px 2px;
+      padding: 3px 2px;
     }
 
     th,
     td {
       border-right: 1px solid var(--border);
       border-bottom: 1px solid var(--border);
-      padding: 3px 2px;
+      padding: 2.5px 2px;
       text-align: center;
       vertical-align: middle;
       transition: background-color 0.15s;
@@ -154,16 +164,16 @@
     }
 
     /* Largeurs colonnes */
-    th.col-jour, td.col-jour { width: 34px; font-weight: 700; background: #f8fafc; }
-    th.col-weekend, td.col-weekend { width: 28px; }
-    th.col-chantier { width: 90px; }
+    th.col-jour, td.col-jour { width: 44px; font-weight: 700; background: var(--bg-alt); }
+    th.col-type, td.col-type { width: 75px; }
+    th.col-chantier { width: 95px; }
     th.col-localite { width: 80px; }
-    th.col-kms { width: 50px; }
-    th.col-plaque { width: 95px; }
-    th.col-heure { width: 55px; }
-    th.col-total { width: 55px; }
+    th.col-kms { width: 48px; }
+    th.col-plaque { width: 92px; }
+    th.col-heure { width: 52px; }
+    th.col-total { width: 52px; }
     th.col-chauffeur { width: 85px; }
-    th.col-actions { width: 32px; }
+    th.col-actions { width: 28px; }
 
     /* Champs */
     table input,
@@ -183,7 +193,7 @@
 
     table input:not([readonly]):focus,
     table select:focus {
-      background: #ffffff;
+      background: var(--bg-card);
       box-shadow: inset 0 0 0 1px var(--primary);
     }
 
@@ -196,8 +206,16 @@
       display: none;
       margin-top: 2px;
       border: 1px solid var(--primary) !important;
-      background: #ffffff !important;
+      background: var(--bg-card) !important;
       border-radius: 4px;
+    }
+
+    .type-select {
+      font-size: 10px;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      padding: 1px 2px;
     }
 
     /* Nettoyage UI native */
@@ -206,32 +224,38 @@
       -webkit-appearance: none;
     }
 
-    /* Weekends */
-    .weekend {
+    /* Styles d'état des lignes */
+    .row-weekend {
       background-color: var(--weekend-bg) !important;
       color: var(--text-light);
     }
 
-    .weekend input:not([readonly]),
-    .weekend select {
+    .row-weekend input:not([readonly]),
+    .row-weekend select:not(.type-select) {
       opacity: 0.45;
     }
 
-    .weekend.has-hours {
-      background-color: #fef3c7 !important;
+    .row-weekend.has-hours {
+      background-color: var(--warning-light) !important;
       color: var(--text-main);
     }
 
-    .weekend.has-hours input,
-    .weekend.has-hours select {
+    .row-weekend.has-hours input,
+    .row-weekend.has-hours select {
       opacity: 1;
     }
+
+    .row-ferie       { background-color: var(--danger-light) !important; }
+    .row-conge       { background-color: var(--info-light) !important; }
+    .row-maladie     { background-color: var(--warning-light) !important; }
+    .row-intemperies { background-color: var(--primary-light) !important; }
+    .row-rcr         { background-color: var(--success-light) !important; }
 
     /* Pied de tableau */
     tfoot td {
       font-weight: 700;
-      background: #f8fafc;
-      padding: 8px 12px;
+      background: var(--bg-alt);
+      padding: 7px 10px;
     }
 
     #totalMois,
@@ -243,13 +267,33 @@
       text-align: center;
     }
 
+    .absence-summary-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .absence-pill {
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      padding: 3px 8px;
+      border-radius: var(--radius-full);
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
     /* Actions */
     .actions-bar {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
       justify-content: flex-end;
-      margin-top: 15px;
+      margin-top: 14px;
     }
 
     .shortcuts-hint {
@@ -259,40 +303,15 @@
       margin: 8px 0 0;
     }
 
-    /* ===== Tablette & Mobile ===== */
-    @media screen and (max-width: 830px) {
-      .sheet {
-        margin: 0;
-        padding: 12px;
-        border-radius: 0;
-        min-height: auto;
-        box-shadow: none;
-      }
-
-      h1 { font-size: 16px; margin-bottom: 12px; }
-
-      .header-form {
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        padding: 10px;
-      }
-
-      .actions-bar { justify-content: flex-start; }
-    }
-
-    @media screen and (max-width: 540px) {
-      .header-form { grid-template-columns: 1fr; }
-    }
-
-    /* ===== Impression A4 Exacte (1 seule page) ===== */
+    /* ===== Impression A4 Exacte ===== */
     @page {
       size: A4 portrait;
-      margin: 6mm 7mm;
+      margin: 5mm 6mm;
     }
 
     @media print {
       html, body {
-        background: #ffffff;
+        background: #ffffff !important;
         margin: 0;
         padding: 0;
       }
@@ -306,29 +325,41 @@
         min-height: unset;
         padding: 0;
         border-radius: 0;
+        background: #fff;
+      }
+
+      .header-top {
+        margin-bottom: 4px;
+      }
+
+      .company-logo {
+        max-height: 38px;
+        display: block !important;
       }
 
       h1 {
-        font-size: 12px;
-        margin: 0 0 4px;
+        font-size: 11px;
+        margin: 0;
       }
 
       .header-form {
-        padding: 4px 8px;
-        margin-bottom: 6px;
-        gap: 8px;
+        padding: 3px 6px;
+        margin-bottom: 5px;
+        gap: 6px;
+        background: #f8fafc !important;
         border: 1px solid #cbd5e1;
       }
 
       .header-form .field label {
-        font-size: 7.5px;
+        font-size: 7px;
       }
 
       .header-form input,
       .header-form select {
-        height: 18px;
-        font-size: 9px;
-        padding: 0 4px;
+        height: 16px;
+        font-size: 8.5px;
+        padding: 0 3px;
+        background: #fff;
       }
 
       .table-scroll {
@@ -338,15 +369,16 @@
       }
 
       table {
-        font-size: 7.5px;
+        font-size: 7px;
         border-radius: 0;
         min-width: unset !important;
         page-break-inside: avoid;
+        border-color: #cbd5e1;
       }
 
       thead th {
-        font-size: 7px;
-        height: 16px;
+        font-size: 6.5px;
+        height: 15px;
         padding: 1px;
         background: #f1f5f9 !important;
         -webkit-print-color-adjust: exact;
@@ -356,43 +388,48 @@
       }
 
       td {
-        padding: 1.5px 1px;
-        height: 15px;
-      }
-
-      table input, table select {
-        font-size: 7.5px;
-        padding: 0;
+        padding: 1px 1px;
         height: 14px;
       }
 
+      table input, table select {
+        font-size: 7px;
+        padding: 0;
+        height: 13px;
+      }
+
       tfoot td {
-        padding: 3px 4px;
-        font-size: 8px;
+        padding: 2.5px 3px;
+        font-size: 7.5px;
       }
 
       #totalMois, #heuresSup, #fraisKm {
-        font-size: 9px;
+        font-size: 8.5px;
       }
 
       .no-print,
-      .col-actions,
-      .col-weekend {
+      .col-actions {
         display: none !important;
       }
 
-      .weekend {
-        background-color: #f1f5f9 !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
+      .row-weekend { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .row-ferie   { background-color: #fee2e2 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .row-conge   { background-color: #e0f2fe !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .row-maladie { background-color: #fef3c7 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .row-intemperies { background-color: #ede9fe !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .row-rcr     { background-color: #ecfdf5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     }
   </style>
 </head>
 
 <body>
   <div class="sheet">
-    <h1><span style="font-weight: 300; color: var(--text-muted)">Feuille de Prestations</span><br>Heures Mensuelles</h1>
+    <div class="header-top">
+      <img id="companyLogoImg" class="company-logo" alt="Logo" />
+      <div class="title-wrap">
+        <h1><span style="font-weight: 300; color: var(--text-muted)">Feuille de Prestations</span><br>Heures Mensuelles</h1>
+      </div>
+    </div>
 
     <div class="header-form">
       <div class="field">
@@ -430,7 +467,7 @@
         <thead>
           <tr>
             <th class="col-jour">Jour</th>
-            <th class="col-weekend">W-E</th>
+            <th class="col-type">Statut</th>
             <th class="col-chantier">N° Chantier</th>
             <th class="col-localite">Localité</th>
             <th class="col-kms">Kms</th>
@@ -448,7 +485,7 @@
         </tbody>
         <tfoot>
           <tr>
-            <td colspan="9" style="text-align:right;">Total mensuel travaillé (heures) :</td>
+            <td colspan="9" style="text-align:right;">Total mensuel presté (heures) :</td>
             <td><input id="totalMois" readonly /></td>
             <td colspan="2" class="no-print"></td>
           </tr>
@@ -464,6 +501,16 @@
           </tr>
         </tfoot>
       </table>
+    </div>
+
+    <!-- Récapitulatif absences & jours -->
+    <div class="absence-summary-bar no-print" id="absenceSummaryBar">
+      <span class="absence-pill" id="pillTravail">🔨 Travail : <strong>0 j</strong></span>
+      <span class="absence-pill" id="pillFerie">🇧🇪 Férié : <strong>0 j</strong></span>
+      <span class="absence-pill" id="pillConge">🏖️ Congé : <strong>0 j</strong></span>
+      <span class="absence-pill" id="pillMaladie">🏥 Maladie : <strong>0 j</strong></span>
+      <span class="absence-pill" id="pillIntemperies">🌧️ Intempéries : <strong>0 j</strong></span>
+      <span class="absence-pill" id="pillRCR">🛋️ RCR : <strong>0 j</strong></span>
     </div>
 
     <div class="actions-bar no-print">
@@ -496,9 +543,16 @@
       for (let j = 1; j <= 31; j++) {
         html += `
           <tr id="row_${j}">
-            <td class="col-jour">${j}</td>
-            <td class="col-weekend">
-              <input type="checkbox" class="chk-weekend" data-day="${j}" onchange="onManualWeekendToggle(this)">
+            <td class="col-jour" id="day_label_${j}">${j}</td>
+            <td class="col-type">
+              <select name="type_${j}" class="type-select" onchange="onTypeChange(${j})">
+                <option value="travail">🔨 Travail</option>
+                <option value="ferie">🇧🇪 Férié</option>
+                <option value="conge">🏖️ Congé</option>
+                <option value="maladie">🏥 Maladie</option>
+                <option value="intemperies">🌧️ Intemp.</option>
+                <option value="rcr">🛋️ RCR</option>
+              </select>
             </td>
             <td><input name="chantier_${j}" list="chantiers-list" placeholder="..." autocomplete="off" /></td>
             <td><input name="localite_${j}" placeholder="..." autocomplete="off" /></td>
@@ -516,7 +570,7 @@
             <td><input name="total_${j}" class="total" readonly /></td>
             <td><input name="chauffeur_${j}" class="chauffeur-input" placeholder="Chauffeur" /></td>
             <td class="col-actions no-print">
-              ${j > 1 ? `<button type="button" class="btn secondary sm" onclick="copyPrevious(${j})" title="Copier la ligne ${j - 1}" style="padding: 2px 5px; font-size: 9px; line-height: 1;">▼</button>` : ''}
+              ${j > 1 ? `<button type="button" class="btn secondary sm" onclick="copyPrevious(${j})" title="Copier la ligne ${j - 1}" style="padding: 2px 4px; font-size: 8.5px; line-height: 1;">▼</button>` : ''}
             </td>
           </tr>
         `;
@@ -524,7 +578,6 @@
       tbody.innerHTML = html;
     }
 
-    /* ===== Remplissage des plaques dans les listes déroulantes ===== */
     function populatePlaques() {
       const plaques = _config.plaques || [];
       document.querySelectorAll('.plaque-select').forEach(select => {
@@ -578,72 +631,57 @@
         };
 
         autreInput.onkeydown = (e) => {
-          if (e.key === "Enter") {
-            autreInput.blur();
-          }
+          if (e.key === "Enter") autreInput.blur();
         };
       } else {
         autreInput.style.display = "none";
       }
     }
 
-    /* ===== Gestion intelligente des week-ends ===== */
-    function onManualWeekendToggle(checkbox) {
-      checkbox.dataset.manual = "true";
-      const row = checkbox.closest("tr");
-      if (checkbox.checked) {
-        row.classList.add("weekend");
-        const debut = row.querySelector('input[name^="debut_"]').value;
-        const fin = row.querySelector('input[name^="fin_"]').value;
-        if (!debut && !fin) {
-          row.classList.remove("has-hours");
-        }
-      } else {
-        row.classList.remove("weekend");
-        row.classList.remove("has-hours");
-      }
+    /* ===== Gestion du type de jour / absence ===== */
+    function onTypeChange(j) {
+      const tr = document.getElementById(`row_${j}`);
+      const type = tr.querySelector(`select[name="type_${j}"]`)?.value || "travail";
+      updateRowTypeStyle(tr, type);
       recalc();
       autoSave();
     }
 
-    function applyWeekendStyle(row, isWeekend, hasHours) {
-      if (isWeekend) {
-        row.classList.add("weekend");
-        if (hasHours) {
-          row.classList.add("has-hours");
-        } else {
-          row.classList.remove("has-hours");
-        }
-      } else {
-        row.classList.remove("weekend");
-        row.classList.remove("has-hours");
+    function updateRowTypeStyle(tr, type) {
+      tr.classList.remove("row-ferie", "row-conge", "row-maladie", "row-intemperies", "row-rcr");
+      if (type !== "travail") {
+        tr.classList.add(`row-${type}`);
       }
     }
 
-    /* ===== Calculs des heures et frais ===== */
+    /* ===== Calculs des heures et statistiques ===== */
     function recalc() {
       let sum = 0, joursTravailles = 0;
       let fraisChauffeur = 0, fraisAccompagnateur = 0;
       const nom = (document.getElementById("nom")?.value || "").trim();
       const prenom = (document.getElementById("prenom")?.value || "").trim();
 
+      const counts = { travail: 0, ferie: 0, conge: 0, maladie: 0, intemperies: 0, rcr: 0 };
+
       document.querySelectorAll("#heures tbody tr").forEach(tr => {
         if (tr.style.display === "none") return;
 
         const j = tr.id.replace("row_", "");
+        const type = tr.querySelector(`select[name="type_${j}"]`)?.value || "travail";
         const debut = tr.querySelector(`input[name="debut_${j}"]`)?.value || "";
         const fin = tr.querySelector(`input[name="fin_${j}"]`)?.value || "";
         const aent = tr.querySelector(`input[name="aent_${j}"]`)?.value || "";
         const totalEl = tr.querySelector(`input[name="total_${j}"]`);
         const kms = parseFloat(tr.querySelector(`input[name="kms_${j}"]`)?.value || 0) || 0;
         const chauff = (tr.querySelector(`input[name="chauffeur_${j}"]`)?.value || "").trim();
-        const chkWeekend = tr.querySelector(".chk-weekend");
+
+        if (counts[type] !== undefined) counts[type]++;
 
         let daySec = 0;
         if (debut && fin) {
           let diff = parseHHMM(fin) - parseHHMM(debut);
-          if (diff < 0) diff += 86400; // Passage de minuit
-          // Déduction de 30 min (1800s) de pause réglementaire
+          if (diff < 0) diff += 86400;
+          // Déduction de 30 min (1800s) de pause
           daySec = Math.max(0, diff + parseHHMM(aent) - 1800);
         }
 
@@ -651,7 +689,6 @@
         if (daySec > 0) joursTravailles++;
         sum += daySec;
 
-        // Frais kilométriques
         if (kms > 0) {
           const estChauff = isChauffeur(chauff, nom, prenom);
           if (estChauff) {
@@ -661,13 +698,9 @@
           }
         }
 
-        // Ajuster l'apparence si heures sur week-end
-        if (chkWeekend && chkWeekend.checked) {
-          if (daySec > 0 || kms > 0) {
-            tr.classList.add("has-hours");
-          } else {
-            tr.classList.remove("has-hours");
-          }
+        if (tr.classList.contains("row-weekend")) {
+          if (daySec > 0 || kms > 0) tr.classList.add("has-hours");
+          else tr.classList.remove("has-hours");
         }
       });
 
@@ -675,13 +708,13 @@
       const totalMoisEl = document.getElementById("totalMois");
       if (totalMoisEl) totalMoisEl.value = sum > 0 ? toHHMM(sum) : "00:00";
 
-      // Heures supplémentaires (> seuil journalier)
+      // Heures supplémentaires
       const seuilNormalSec = (_config.heures_normales_par_jour || 8) * 3600;
       const supSec = Math.max(0, sum - joursTravailles * seuilNormalSec);
       const heuresSupEl = document.getElementById("heuresSup");
       if (heuresSupEl) heuresSupEl.value = supSec > 0 ? toHHMM(supSec) : "00:00";
 
-      // Total frais KM
+      // Frais KM
       const totalFrais = fraisChauffeur + fraisAccompagnateur;
       const fraisEl = document.getElementById("fraisKm");
       const fraisRowEl = document.getElementById("fraisKmRow");
@@ -690,9 +723,17 @@
         fraisRowEl.style.display = tarifActif ? "" : "none";
         fraisEl.value = totalFrais > 0 ? totalFrais.toFixed(2) + " €" : "0.00 €";
       }
+
+      // Mise à jour des compteurs d'absences
+      document.getElementById("pillTravail").innerHTML = `🔨 Travail : <strong>${joursTravailles} j</strong>`;
+      document.getElementById("pillFerie").innerHTML = `🇧🇪 Férié : <strong>${counts.ferie} j</strong>`;
+      document.getElementById("pillConge").innerHTML = `🏖️ Congé : <strong>${counts.conge} j</strong>`;
+      document.getElementById("pillMaladie").innerHTML = `🏥 Maladie : <strong>${counts.maladie} j</strong>`;
+      document.getElementById("pillIntemperies").innerHTML = `🌧️ Intemp. : <strong>${counts.intemperies} j</strong>`;
+      document.getElementById("pillRCR").innerHTML = `🛋️ RCR : <strong>${counts.rcr} j</strong>`;
     }
 
-    /* ===== Structure des dates du mois sélectionné ===== */
+    /* ===== Structure des dates & Fériés belges ===== */
     function updateDateStructure() {
       const mois = parseInt(document.getElementById("selectMois").value);
       const annee = parseInt(document.getElementById("annee").value);
@@ -706,23 +747,33 @@
           row.style.display = "table-row";
           const dayOfWeek = new Date(annee, mois, day).getDay();
           const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-          const chk = row.querySelector(".chk-weekend");
+          const ferieName = isBelgianHoliday(day, mois, annee);
 
-          if (chk && !chk.dataset.manual) {
-            chk.checked = isWeekend;
+          const labelTd = document.getElementById(`day_label_${day}`);
+          if (ferieName) {
+            labelTd.innerHTML = `${day} <span title="Férié : ${ferieName}" style="cursor:help;">🇧🇪</span>`;
+            const typeSel = row.querySelector(`select[name="type_${day}"]`);
+            if (typeSel && !typeSel.dataset.manual) {
+              typeSel.value = "ferie";
+              updateRowTypeStyle(row, "ferie");
+            }
+          } else {
+            labelTd.textContent = day;
           }
 
-          const debut = row.querySelector(`input[name="debut_${day}"]`)?.value || "";
-          const fin = row.querySelector(`input[name="fin_${day}"]`)?.value || "";
-          const hasHours = (debut && fin);
+          if (isWeekend) {
+            row.classList.add("row-weekend");
+          } else {
+            row.classList.remove("row-weekend");
+          }
 
-          applyWeekendStyle(row, chk ? chk.checked : isWeekend, hasHours);
+          const curType = row.querySelector(`select[name="type_${day}"]`)?.value || "travail";
+          updateRowTypeStyle(row, curType);
         }
       });
       recalc();
     }
 
-    /* ===== Collecte et Restauration des données ===== */
     function collectFormData() {
       const data = {};
       document.querySelectorAll("input, select").forEach(el => {
@@ -736,26 +787,24 @@
     function restoreFormData(data) {
       if (!data) return;
 
-      // 1. Rétablir d'abord nom, prénom, période
       if (data.nom !== undefined) document.getElementById("nom").value = data.nom;
       if (data.prenom !== undefined) document.getElementById("prenom").value = data.prenom;
       if (data.selectMois !== undefined) document.getElementById("selectMois").value = data.selectMois;
       if (data.annee !== undefined) document.getElementById("annee").value = data.annee;
 
-      // 2. Rétablir tous les champs de chaque jour
       Object.entries(data).forEach(([key, val]) => {
         if (["nom", "prenom", "selectMois", "annee"].includes(key)) return;
         const el = document.querySelector(`[name="${CSS.escape(key)}"], #${CSS.escape(key)}`);
         if (!el) return;
 
         if (el.tagName === "SELECT" && key.startsWith("plaque_")) {
-          if (val && val !== "autre") {
-            ensureOptionExists(el, val);
-          }
+          if (val && val !== "autre") ensureOptionExists(el, val);
           el.value = val;
-        } else if (el.type === "checkbox") {
-          el.checked = !!val;
+        } else if (el.tagName === "SELECT" && key.startsWith("type_")) {
+          el.value = val;
           el.dataset.manual = "true";
+          const row = el.closest("tr");
+          updateRowTypeStyle(row, val);
         } else {
           el.value = val;
         }
@@ -766,16 +815,18 @@
 
     function clearDailyData() {
       document.querySelectorAll("#heures tbody tr").forEach(tr => {
-        tr.classList.remove("weekend", "has-hours");
+        tr.classList.remove("row-weekend", "has-hours", "row-ferie", "row-conge", "row-maladie", "row-intemperies", "row-rcr");
         tr.querySelectorAll("input").forEach(el => {
-          if (el.type === "checkbox") {
-            el.checked = false;
+          if (!el.readOnly) el.value = "";
+        });
+        tr.querySelectorAll("select").forEach(el => {
+          if (el.name.startsWith("type_")) {
+            el.value = "travail";
             delete el.dataset.manual;
-          } else if (!el.readOnly) {
+          } else {
             el.value = "";
           }
         });
-        tr.querySelectorAll("select").forEach(el => { el.value = ""; });
         tr.querySelectorAll(".plaque-autre").forEach(el => { el.style.display = "none"; });
       });
     }
@@ -803,9 +854,7 @@
       if (saved) {
         try {
           restoreFormData(JSON.parse(saved));
-        } catch (e) {
-          console.error("Erreur de restauration", e);
-        }
+        } catch (e) {}
       } else {
         document.getElementById("nom").value = nom;
         document.getElementById("prenom").value = prenom;
@@ -813,7 +862,7 @@
       }
     }
 
-    /* ===== Actions & Boutons ===== */
+    /* ===== Actions ===== */
     function ouvrirResume() {
       autoSave();
       localStorage.setItem("heures_resume_key", _activeKey || getStorageKey(
@@ -838,7 +887,7 @@
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      showToast("Fichier JSON téléchargé !", "success");
+      showToast("Feuille sauvegardée en JSON !", "success");
     }
 
     function importerJSON(event) {
@@ -861,7 +910,7 @@
           autoSave();
           showToast("Données importées avec succès !", "success");
         } catch (e) {
-          showToast("Fichier invalide ou corrompu.", "error");
+          showToast("Fichier JSON invalide.", "error");
         }
         event.target.value = "";
       };
@@ -869,7 +918,7 @@
     }
 
     function resetForm() {
-      if (confirm("Voulez-vous vraiment vider toutes les saisies du mois en cours ?")) {
+      if (confirm("Voulez-vous réinitialiser le formulaire pour ce mois ?")) {
         if (_activeKey) localStorage.removeItem(_activeKey);
         clearDailyData();
         updateDateStructure();
@@ -883,12 +932,13 @@
       const mois = document.getElementById("selectMois").selectedOptions[0].text;
       const annee = document.getElementById("annee").value;
 
-      let csv = "Jour;N° Chantier;Localite;Kms;Plaque;Debut;Fin;A/Ent;Total;Chauffeur\n";
+      let csv = "Jour;Statut;N° Chantier;Localite;Kms;Plaque;Debut;Fin;A/Ent;Total;Chauffeur\n";
       document.querySelectorAll("#heures tbody tr").forEach((tr, i) => {
         if (tr.style.display === "none") return;
         const j = i + 1;
         const row = [
           j,
+          `"${tr.querySelector(`select[name="type_${j}"]`)?.value || "travail"}"`,
           `"${(tr.querySelector(`[name="chantier_${j}"]`)?.value || "").replace(/"/g, '""')}"`,
           `"${(tr.querySelector(`[name="localite_${j}"]`)?.value || "").replace(/"/g, '""')}"`,
           tr.querySelector(`[name="kms_${j}"]`)?.value || "",
@@ -925,9 +975,9 @@
       corps += `Nom : ${nom}\nPrénom : ${prenom}\n`;
       if (_config.nom_entreprise) corps += `Entreprise : ${_config.nom_entreprise}\n`;
       corps += `----------------------------------\n`;
-      corps += `TOTAL MENSUEL   : ${total}\n`;
-      corps += `Heures sup.     : ${sup}\n`;
-      if (tarifActif && frais) corps += `Frais km        : ${frais}\n`;
+      corps += `TOTAL MENSUEL PRESTÉ : ${total}\n`;
+      corps += `Heures sup.          : ${sup}\n`;
+      if (tarifActif && frais) corps += `Frais km calculés    : ${frais}\n`;
       corps += `----------------------------------\n\n`;
       corps += `(Pensez à joindre le fichier PDF ou JSON de la feuille d'heures)\n\n`;
       corps += `Cordialement,\n${prenom} ${nom}`;
@@ -944,9 +994,7 @@
         const el = document.querySelector(`[name="${f}_${j}"]`);
         if (el) {
           if (f === 'plaque' && el.classList.contains('plaque-select')) {
-            if (prevVal && prevVal !== "autre") {
-              ensureOptionExists(el, prevVal);
-            }
+            if (prevVal && prevVal !== "autre") ensureOptionExists(el, prevVal);
             el.value = prevVal;
           } else {
             el.value = prevVal;
@@ -955,7 +1003,7 @@
       });
       recalc();
       autoSave();
-      showToast(`Ligne ${j - 1} copiée vers jour ${j}`, "info", 1500);
+      showToast(`Ligne ${j - 1} copiée`, "info", 1200);
     }
 
     function updateChauffeursDefault() {
@@ -968,12 +1016,10 @@
 
     /* ===== Raccourcis clavier ===== */
     document.addEventListener("keydown", e => {
-      // Ctrl+S / Cmd+S => Sauvegarde JSON
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
         e.preventDefault();
         telechargerJSON();
       }
-      // Alt+← / Alt+→ => Mois précédent / suivant
       if (e.altKey && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
         e.preventDefault();
         const sel = document.getElementById("selectMois");
@@ -992,7 +1038,6 @@
       }
     });
 
-    /* ===== Événements & Initialisation ===== */
     document.addEventListener("input", e => {
       if (e.target.closest("#heures") || ["nom", "prenom", "annee"].includes(e.target.id)) {
         if (["nom", "prenom"].includes(e.target.id)) updateChauffeursDefault();
@@ -1011,7 +1056,13 @@
 
       _config = await loadConfig();
 
-      // Mettre à jour le bouton email si destinataire personnalisé
+      // Logo d'entreprise
+      if (_config.logo_entreprise) {
+        const logoImg = document.getElementById("companyLogoImg");
+        logoImg.src = _config.logo_entreprise;
+        logoImg.style.display = "block";
+      }
+
       if (_config.email_destinataire) {
         const btn = document.getElementById("btnEmail");
         if (_config.email_destinataire.includes("isabelle")) {
@@ -1019,18 +1070,15 @@
         }
       }
 
-      // Remplir datalist des chantiers récurrents
       const datalist = document.getElementById("chantiers-list");
       if (datalist && _config.chantiers && _config.chantiers.length) {
         datalist.innerHTML = _config.chantiers.map(c => `<option value="${escapeHTML(c)}"></option>`).join("");
       }
 
-      // Initialiser dates
       const now = new Date();
       document.getElementById("annee").value = now.getFullYear();
       document.getElementById("selectMois").value = now.getMonth();
 
-      // Vérifier si navigation ciblée (depuis l'historique ou l'import)
       const navTarget = localStorage.getItem("heures_nav");
       if (navTarget) {
         try {

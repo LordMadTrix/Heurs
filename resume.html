@@ -17,22 +17,28 @@
 
     .container {
       background: var(--bg-card);
-      padding: 30px;
+      padding: 28px;
       border-radius: var(--radius-md);
       box-shadow: var(--shadow-sm);
       border: 1px solid var(--border);
-      max-width: 560px;
+      max-width: 580px;
       margin: 30px auto;
       width: 100%;
     }
 
-    .header-row {
+    .header-top {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       gap: 10px;
-      flex-wrap: wrap;
+    }
+
+    .company-logo {
+      max-height: 48px;
+      max-width: 150px;
+      object-fit: contain;
+      display: none;
     }
 
     h1 {
@@ -60,15 +66,16 @@
       padding: 0 8px;
       font-family: inherit;
       font-size: 13px;
-      background: #fff;
+      background: var(--bg-card);
+      color: var(--text-main);
     }
 
     .info-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 14px;
-      margin-bottom: 24px;
-      padding: 16px;
+      margin-bottom: 20px;
+      padding: 14px 16px;
       background: var(--bg-alt);
       border-radius: var(--radius-sm);
       border: 1px solid var(--border);
@@ -99,8 +106,8 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 0;
-      border-bottom: 1px solid #f1f5f9;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
     }
     .stat-row:last-child { border-bottom: none; }
 
@@ -116,10 +123,55 @@
     }
 
     .stat-value.green { color: var(--success); }
-    .stat-value.sm    { font-size: 16px; color: var(--text-main); }
+    .stat-value.sm    { font-size: 15px; color: var(--text-main); }
+
+    /* Absences breakdown */
+    .absences-card {
+      margin-top: 16px;
+      padding: 14px;
+      background: var(--bg-alt);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+    }
+
+    .absences-card h3 {
+      margin: 0 0 10px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .absences-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+
+    .absence-item {
+      background: var(--bg-card);
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .absence-item .label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: block;
+    }
+
+    .absence-item .val {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
 
     .km-section {
-      margin-top: 18px;
+      margin-top: 16px;
       padding: 14px;
       background: var(--success-light);
       border-radius: var(--radius-sm);
@@ -157,22 +209,25 @@
 
     @media print {
       .no-print { display: none !important; }
-      body { background: white; padding: 0; }
+      body { background: white !important; padding: 0; }
       .container { box-shadow: none; border: none; max-width: 100%; padding: 0; margin: 0; }
+      .company-logo { display: block !important; }
     }
   </style>
 </head>
 
 <body>
   <div class="container">
-    <div class="header-row">
-      <h1>📊 Résumé Mensuel</h1>
-      <a href="index.html" class="btn secondary sm no-print">← Saisie des heures</a>
+    <div class="header-top">
+      <div>
+        <h1>📊 Résumé Mensuel</h1>
+      </div>
+      <img id="resCompanyLogo" class="company-logo" alt="Logo" />
     </div>
 
     <!-- Sélecteur de mois -->
     <div class="period-selector no-print">
-      <label style="font-size:12px; font-weight:600; color:var(--text-muted);">Afficher la période :</label>
+      <label style="font-size:12px; font-weight:600; color:var(--text-muted);">Période :</label>
       <select id="selectMois" onchange="changerPeriode()">
         <option value="0">Janvier</option>
         <option value="1">Février</option>
@@ -188,6 +243,7 @@
         <option value="11">Décembre</option>
       </select>
       <input type="number" id="annee" min="2000" max="2099" style="width:75px;" onchange="changerPeriode()" />
+      <a href="index.html" class="btn secondary sm" style="margin-left:auto;">← Saisie</a>
     </div>
 
     <div class="info-grid">
@@ -207,12 +263,25 @@
         <span class="stat-value" id="resSup">00:00</span>
       </div>
       <div class="stat-row">
-        <span class="stat-label">Jours travaillés</span>
+        <span class="stat-label">Jours travaillés sur chantier</span>
         <span class="stat-value sm" id="resJours">0 j</span>
       </div>
       <div class="stat-row">
         <span class="stat-label">Distance totale parcourue</span>
         <span class="stat-value sm" id="resKmTotal">0 km</span>
+      </div>
+    </div>
+
+    <!-- Répartition des journées -->
+    <div class="absences-card">
+      <h3>Détail des journées du mois</h3>
+      <div class="absences-grid">
+        <div class="absence-item"><span class="label">🔨 Travaillés</span><span class="val" id="cntTravail">0 j</span></div>
+        <div class="absence-item"><span class="label">🇧🇪 Fériés</span><span class="val" id="cntFerie">0 j</span></div>
+        <div class="absence-item"><span class="label">🏖️ Congés</span><span class="val" id="cntConge">0 j</span></div>
+        <div class="absence-item"><span class="label">🏥 Maladie</span><span class="val" id="cntMaladie">0 j</span></div>
+        <div class="absence-item"><span class="label">🌧️ Intempéries</span><span class="val" id="cntIntemperies">0 j</span></div>
+        <div class="absence-item"><span class="label">🛋️ Repos RCR</span><span class="val" id="cntRcr">0 j</span></div>
       </div>
     </div>
 
@@ -247,6 +316,12 @@
     async function initialiser() {
       initNavBar("resume");
       _config = await loadConfig();
+
+      if (_config.logo_entreprise) {
+        const logoImg = document.getElementById("resCompanyLogo");
+        logoImg.src = _config.logo_entreprise;
+        logoImg.style.display = "block";
+      }
 
       const key = localStorage.getItem("heures_resume_key");
       if (key && key.startsWith("heures_v2_")) {
@@ -288,6 +363,12 @@
         document.getElementById("resSup").textContent = "00:00";
         document.getElementById("resJours").textContent = "0 j";
         document.getElementById("resKmTotal").textContent = "0 km";
+        document.getElementById("cntTravail").textContent = "0 j";
+        document.getElementById("cntFerie").textContent = "0 j";
+        document.getElementById("cntConge").textContent = "0 j";
+        document.getElementById("cntMaladie").textContent = "0 j";
+        document.getElementById("cntIntemperies").textContent = "0 j";
+        document.getElementById("cntRcr").textContent = "0 j";
         document.getElementById("kmSection").style.display = "none";
         return;
       }
@@ -304,7 +385,12 @@
       document.getElementById("resSup").textContent = data.heuresSup || "00:00";
 
       let jours = 0, kmTotal = 0, kmChauffeur = 0, kmAccom = 0;
+      const counts = { travail: 0, ferie: 0, conge: 0, maladie: 0, intemperies: 0, rcr: 0 };
+
       for (let j = 1; j <= 31; j++) {
+        const type = data[`type_${j}`] || "travail";
+        if (counts[type] !== undefined) counts[type]++;
+
         const tot = data[`total_${j}`];
         if (tot && tot !== "00:00" && tot !== "0:00") {
           jours++;
@@ -325,6 +411,13 @@
 
       document.getElementById("resJours").textContent = `${jours} j`;
       document.getElementById("resKmTotal").textContent = `${kmTotal.toFixed(1)} km`;
+
+      document.getElementById("cntTravail").textContent = `${jours} j`;
+      document.getElementById("cntFerie").textContent = `${counts.ferie} j`;
+      document.getElementById("cntConge").textContent = `${counts.conge} j`;
+      document.getElementById("cntMaladie").textContent = `${counts.maladie} j`;
+      document.getElementById("cntIntemperies").textContent = `${counts.intemperies} j`;
+      document.getElementById("cntRcr").textContent = `${counts.rcr} j`;
 
       if ((tarifC > 0 || tarifA > 0) && kmTotal > 0) {
         const fraisC = kmChauffeur * tarifC;

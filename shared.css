@@ -13,11 +13,15 @@
   --success-light: #ecfdf5;
 
   --warning: #f59e0b;
+  --warning-hover: #d97706;
   --warning-light: #fef3c7;
 
   --danger: #ef4444;
   --danger-hover: #dc2626;
   --danger-light: #fef2f2;
+
+  --info: #0284c7;
+  --info-light: #e0f2fe;
 
   --text-main: #0f172a;
   --text-muted: #64748b;
@@ -29,6 +33,8 @@
 
   --border: #e2e8f0;
   --border-focus: #818cf8;
+  --row-hover: #f8fafc;
+  --weekend-bg: #f1f5f9;
 
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -43,6 +49,45 @@
   --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* ==========================================================================
+   DARK MODE
+   ========================================================================== */
+[data-theme="dark"] {
+  --primary: #6366f1;
+  --primary-hover: #4f46e5;
+  --primary-light: rgba(99, 102, 241, 0.18);
+  --primary-glow: rgba(99, 102, 241, 0.25);
+
+  --success: #34d399;
+  --success-light: rgba(52, 211, 153, 0.18);
+
+  --warning: #fbbf24;
+  --warning-light: rgba(251, 191, 36, 0.18);
+
+  --danger: #f87171;
+  --danger-light: rgba(248, 113, 113, 0.18);
+
+  --info: #38bdf8;
+  --info-light: rgba(56, 189, 248, 0.18);
+
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --text-light: #64748b;
+
+  --bg-page: #0b0f19;
+  --bg-card: #151d2f;
+  --bg-alt: #1e293b;
+
+  --border: #293548;
+  --border-focus: #6366f1;
+  --row-hover: #1b2438;
+  --weekend-bg: #111827;
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -55,6 +100,7 @@ body {
   padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 /* ==========================================================================
@@ -68,6 +114,7 @@ body {
   top: 0;
   z-index: 100;
   box-shadow: var(--shadow-sm);
+  transition: background-color 0.25s ease, border-color 0.25s ease;
 }
 
 .app-nav-inner {
@@ -76,7 +123,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 14px;
   flex-wrap: wrap;
 }
 
@@ -103,10 +150,16 @@ body {
   font-size: 18px;
 }
 
+.app-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .app-nav-links {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -118,7 +171,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
+  padding: 7px 12px;
   border-radius: var(--radius-md);
   font-size: 13px;
   font-weight: 600;
@@ -137,6 +190,26 @@ body {
   color: var(--primary);
   background: var(--primary-light);
   font-weight: 700;
+}
+
+.theme-toggle-btn {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  transition: var(--transition);
+}
+
+.theme-toggle-btn:hover {
+  border-color: var(--primary);
+  transform: scale(1.05);
 }
 
 /* ==========================================================================
@@ -177,14 +250,14 @@ body {
 }
 
 .btn.secondary {
-  background: #ffffff;
+  background: var(--bg-card);
   color: var(--text-main);
   border-color: var(--border);
 }
 
 .btn.secondary:hover {
   background: var(--bg-alt);
-  border-color: #cbd5e1;
+  border-color: var(--border-focus);
 }
 
 .btn.success {
@@ -198,9 +271,9 @@ body {
 }
 
 .btn.danger {
-  background: #ffffff;
+  background: var(--bg-card);
   color: var(--danger);
-  border-color: #fecaca;
+  border-color: var(--border);
 }
 
 .btn.danger:hover {
@@ -228,6 +301,30 @@ body {
 }
 
 /* ==========================================================================
+   STATUS BADGES & DAY TYPES
+   ========================================================================== */
+.badge-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.badge-ferie       { background: #fee2e2; color: #dc2626; }
+.badge-conge       { background: #e0f2fe; color: #0284c7; }
+.badge-maladie     { background: #fef3c7; color: #d97706; }
+.badge-intemperies { background: #ede9fe; color: #6366f1; }
+.badge-rcr         { background: #ecfdf5; color: #059669; }
+
+[data-theme="dark"] .badge-ferie       { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+[data-theme="dark"] .badge-conge       { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
+[data-theme="dark"] .badge-maladie     { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+[data-theme="dark"] .badge-intemperies { background: rgba(99, 102, 241, 0.2); color: #818cf8; }
+[data-theme="dark"] .badge-rcr         { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+
+/* ==========================================================================
    TOAST NOTIFICATIONS
    ========================================================================== */
 #toast-container {
@@ -246,6 +343,7 @@ body {
   min-width: 260px;
   max-width: 380px;
   background: var(--bg-card);
+  color: var(--text-main);
   border: 1px solid var(--border);
   border-left: 4px solid var(--primary);
   border-radius: var(--radius-md);
@@ -260,15 +358,10 @@ body {
   transition: opacity 0.25s, transform 0.25s;
 }
 
-.toast.success {
-  border-left-color: var(--success);
-}
-.toast.error {
-  border-left-color: var(--danger);
-}
-.toast.info {
-  border-left-color: var(--primary);
-}
+.toast.success { border-left-color: var(--success); }
+.toast.error   { border-left-color: var(--danger); }
+.toast.warning { border-left-color: var(--warning); }
+.toast.info    { border-left-color: var(--primary); }
 
 @keyframes toastSlideIn {
   from {
@@ -282,9 +375,14 @@ body {
 }
 
 /* ==========================================================================
-   PRINT HELPERS
+   PRINT HELPERS (ALWAYS IN LIGHT MODE)
    ========================================================================== */
 @media print {
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
   .app-nav,
   .no-print,
   #toast-container {

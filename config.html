@@ -12,7 +12,7 @@
   <style>
     body {
       background: var(--bg-page);
-      padding: 0 0 40px;
+      padding: 0 0 50px;
     }
 
     .container {
@@ -85,7 +85,7 @@
       font-family: inherit;
       font-size: 14px;
       color: var(--text-main);
-      background: #fff;
+      background: var(--bg-card);
       transition: var(--transition);
       width: 100%;
     }
@@ -100,6 +100,38 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 14px;
+    }
+
+    /* Logo Upload */
+    .logo-upload-wrap {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 6px;
+    }
+
+    .logo-preview-box {
+      width: 140px;
+      height: 70px;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-alt);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .logo-preview-box img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .logo-preview-box span {
+      font-size: 11px;
+      color: var(--text-muted);
     }
 
     /* Tags */
@@ -165,7 +197,7 @@
       font-family: inherit;
       font-size: 13px;
       color: var(--text-main);
-      background: #fff;
+      background: var(--bg-card);
       outline: none;
       transition: var(--transition);
     }
@@ -185,6 +217,7 @@
     @media (max-width: 540px) {
       .two-cols { grid-template-columns: 1fr; }
       .header-row { margin-bottom: 16px; }
+      .logo-upload-wrap { flex-direction: column; align-items: flex-start; }
     }
   </style>
 </head>
@@ -193,17 +226,34 @@
   <div class="container">
 
     <div class="header-row">
-      <h1>⚙️ Paramètres de l'Application</h1>
+      <h1>⚙️ Paramètres &amp; Sauvegardes</h1>
       <a href="index.html" class="btn secondary">← Saisie des heures</a>
     </div>
 
-    <!-- Entreprise -->
+    <!-- Entreprise & Logo -->
     <div class="card">
-      <h2>Entreprise &amp; Destinataire</h2>
+      <h2>Entreprise &amp; Identité Visuelle</h2>
       <div class="field">
         <label for="cfg-entreprise">Nom de l'entreprise</label>
         <input type="text" id="cfg-entreprise" placeholder="Ex : EECOCUR" />
       </div>
+
+      <div class="field">
+        <label>Logo de l'entreprise (affiché sur la feuille &amp; PDF)</label>
+        <div class="logo-upload-wrap">
+          <div class="logo-preview-box" id="logoPreviewBox">
+            <span id="logoPlaceholder">Aucun logo</span>
+            <img id="logoImg" style="display:none;" alt="Logo entreprise" />
+          </div>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <input type="file" id="logoInput" accept="image/*" style="display:none" onchange="onLogoChange(event)" />
+            <button type="button" class="btn primary sm" onclick="document.getElementById('logoInput').click()">📁 Choisir un logo</button>
+            <button type="button" class="btn danger sm" id="btnDeleteLogo" onclick="supprimerLogo()" style="display:none;">🗑️ Retirer le logo</button>
+          </div>
+        </div>
+        <span class="hint">Format PNG, JPG ou SVG (taille max recommandée : 500 Ko).</span>
+      </div>
+
       <div class="field">
         <label for="cfg-email">Email destinataire des feuilles</label>
         <input type="email" id="cfg-email" placeholder="Ex : deutsch.isabelle@eecocur.be" />
@@ -281,9 +331,22 @@
       </div>
     </div>
 
+    <!-- Sauvegarde & Restauration Globale -->
+    <div class="card">
+      <h2>Sauvegarde Totale &amp; Archivage</h2>
+      <p style="font-size:12px; color:var(--text-muted); margin: -6px 0 14px;">
+        Exportez l'intégralité de vos feuilles d'heures enregistrées et vos paramètres dans un seul fichier d'archive pour ne jamais perdre vos données.
+      </p>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn secondary" type="button" onclick="exportGlobalBackup()">💾 Sauvegarde globale (Toutes les feuilles)</button>
+        <input type="file" id="importGlobalFile" accept=".json" style="display:none" onchange="onImportGlobal(event)" />
+        <button class="btn secondary" type="button" onclick="document.getElementById('importGlobalFile').click()">📥 Restaurer une sauvegarde globale</button>
+      </div>
+    </div>
+
     <!-- Actions -->
     <div class="actions-footer">
-      <button class="btn success" onclick="sauvegarder()">💾 Enregistrer la configuration</button>
+      <button class="btn success" onclick="sauvegarder()">💾 Enregistrer les paramètres</button>
       <button class="btn secondary" onclick="exporterJSON()">📤 Exporter config.json</button>
       <input type="file" id="importFile" accept=".json" style="display:none" onchange="importerJSON(event)" />
       <button class="btn secondary" onclick="document.getElementById('importFile').click()">📂 Importer config.json</button>
@@ -294,10 +357,12 @@
   <script src="shared.js"></script>
   <script>
     let cfg = { ...DEFAULT_CONFIG };
+    let currentLogoBase64 = "";
 
     async function charger() {
       initNavBar("config");
       cfg = await loadConfig();
+      currentLogoBase64 = cfg.logo_entreprise || "";
       appliquerUI();
     }
 
@@ -311,6 +376,51 @@
       renderTags("chantiers-list", cfg.chantiers || [], "green",  supprimerChantier);
       const geminiKey = localStorage.getItem("gemini_api_key") || "";
       document.getElementById("cfg-gemini").value = geminiKey;
+
+      renderLogoPreview();
+    }
+
+    function renderLogoPreview() {
+      const img = document.getElementById("logoImg");
+      const ph = document.getElementById("logoPlaceholder");
+      const delBtn = document.getElementById("btnDeleteLogo");
+
+      if (currentLogoBase64) {
+        img.src = currentLogoBase64;
+        img.style.display = "block";
+        ph.style.display = "none";
+        delBtn.style.display = "inline-flex";
+      } else {
+        img.src = "";
+        img.style.display = "none";
+        ph.style.display = "block";
+        delBtn.style.display = "none";
+      }
+    }
+
+    function onLogoChange(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      if (file.size > 1024 * 1024) {
+        showToast("L'image est trop volumineuse (max 1 Mo).", "warning");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        currentLogoBase64 = e.target.result;
+        renderLogoPreview();
+        showToast("Logo chargé — Pensez à enregistrer les paramètres !", "info");
+      };
+      reader.readAsDataURL(file);
+      event.target.value = "";
+    }
+
+    function supprimerLogo() {
+      currentLogoBase64 = "";
+      renderLogoPreview();
+      showToast("Logo retiré", "info");
     }
 
     function renderTags(containerId, items, color, removeFn) {
@@ -369,8 +479,9 @@
       cfg.nom_entreprise           = document.getElementById("cfg-entreprise").value.trim();
       cfg.email_destinataire       = document.getElementById("cfg-email").value.trim();
       cfg.heures_normales_par_jour = parseFloat(document.getElementById("cfg-heures").value) || 8;
-      cfg.tarif_km_chauffeur     = parseFloat(document.getElementById("cfg-km-chauffeur").value) || 0;
-      cfg.tarif_km_accompagnateur = parseFloat(document.getElementById("cfg-km-accompagnateur").value) || 0;
+      cfg.tarif_km_chauffeur       = parseFloat(document.getElementById("cfg-km-chauffeur").value) || 0;
+      cfg.tarif_km_accompagnateur  = parseFloat(document.getElementById("cfg-km-accompagnateur").value) || 0;
+      cfg.logo_entreprise          = currentLogoBase64;
     }
 
     function sauvegarder() {
@@ -382,7 +493,7 @@
       } else {
         localStorage.removeItem("gemini_api_key");
       }
-      showToast("Configuration enregistrée avec succès !", "success");
+      showToast("Paramètres enregistrés avec succès !", "success");
     }
 
     function exporterJSON() {
@@ -407,11 +518,30 @@
             imported.tarif_km_chauffeur = imported.tarif_km;
           }
           cfg = { ...DEFAULT_CONFIG, ...imported };
+          currentLogoBase64 = cfg.logo_entreprise || "";
           saveConfig(cfg);
           appliquerUI();
-          showToast("Configuration importée et enregistrée !", "success");
+          showToast("Configuration importée !", "success");
         } catch (e) {
           showToast("Fichier JSON invalide.", "error");
+        }
+        event.target.value = "";
+      };
+      reader.readAsText(file, "utf-8");
+    }
+
+    function onImportGlobal(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const json = JSON.parse(reader.result);
+          const count = importGlobalBackup(json);
+          charger();
+          showToast(`${count} feuilles d'heures restaurées avec succès !`, "success");
+        } catch (e) {
+          showToast("Échec de la restauration : " + e.message, "error");
         }
         event.target.value = "";
       };
