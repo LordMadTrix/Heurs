@@ -164,15 +164,15 @@
     }
 
     /* Largeurs colonnes */
-    th.col-jour, td.col-jour { width: 44px; font-weight: 700; background: var(--bg-alt); }
-    th.col-type, td.col-type { width: 75px; }
-    th.col-chantier { width: 95px; }
+    th.col-jour, td.col-jour { width: 38px; font-weight: 700; background: var(--bg-alt); }
+    th.col-type, td.col-type { width: 92px; }
+    th.col-chantier { width: 92px; }
     th.col-localite { width: 80px; }
-    th.col-kms { width: 48px; }
-    th.col-plaque { width: 92px; }
-    th.col-heure { width: 52px; }
-    th.col-total { width: 52px; }
-    th.col-chauffeur { width: 85px; }
+    th.col-kms { width: 46px; }
+    th.col-plaque { width: 90px; }
+    th.col-heure { width: 50px; }
+    th.col-total { width: 50px; }
+    th.col-chauffeur { width: 82px; }
     th.col-actions { width: 28px; }
 
     /* Champs */
@@ -189,6 +189,26 @@
       border-radius: 3px;
       transition: background-color 0.15s;
       color: var(--text-main);
+    }
+
+    table select {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 2px center;
+      background-size: 9px;
+      padding-right: 12px !important;
+      padding-left: 2px !important;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    table select option {
+      background-color: var(--bg-card);
+      color: var(--text-main);
+      padding: 4px;
     }
 
     table input:not([readonly]):focus,
@@ -214,8 +234,6 @@
       font-size: 10px;
       font-weight: 600;
       border-radius: var(--radius-sm);
-      cursor: pointer;
-      padding: 1px 2px;
     }
 
     /* Nettoyage UI native */
