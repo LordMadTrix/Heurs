@@ -411,23 +411,53 @@
       }
 
       table input, table select {
-        font-size: 7px;
-        padding: 0;
-        height: 13px;
+        font-size: 7.5px;
+        padding: 0 1px;
+        height: 14px;
+        border: none !important;
+        background: transparent !important;
+        background-image: none !important;
+        -webkit-appearance: none;
+        appearance: none;
+        color: #000 !important;
       }
 
       tfoot td {
         padding: 2.5px 3px;
         font-size: 7.5px;
+        background: #f8fafc !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
       }
 
       #totalMois, #heuresSup, #fraisKm {
         font-size: 8.5px;
+        color: #000 !important;
       }
 
       .no-print,
       .col-actions {
         display: none !important;
+      }
+
+      .only-print {
+        display: flex !important;
+      }
+
+      .print-signatures {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 6px;
+        padding-top: 4px;
+        font-size: 7.5px;
+        color: #1e293b;
+      }
+
+      .sig-box {
+        width: 46%;
+        border-top: 1px dashed #94a3b8;
+        padding-top: 4px;
+        min-height: 28px;
       }
 
       .row-weekend { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -436,6 +466,10 @@
       .row-maladie { background-color: #fef3c7 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .row-intemperies { background-color: #ede9fe !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .row-rcr     { background-color: #ecfdf5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+
+    .only-print {
+      display: none;
     }
   </style>
 </head>
@@ -519,6 +553,16 @@
           </tr>
         </tfoot>
       </table>
+    </div>
+
+    <!-- Signatures visibles uniquement à l'impression / export PDF -->
+    <div class="print-signatures only-print">
+      <div class="sig-box">
+        <strong>Date &amp; Signature de l'ouvrier :</strong>
+      </div>
+      <div class="sig-box">
+        <strong>Date &amp; Signature de la direction / responsable :</strong>
+      </div>
     </div>
 
     <!-- Récapitulatif absences & jours -->
