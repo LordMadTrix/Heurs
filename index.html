@@ -164,15 +164,15 @@
     }
 
     /* Largeurs colonnes */
-    th.col-jour, td.col-jour { width: 4.5%; font-weight: 700; background: var(--bg-alt); }
-    th.col-type, td.col-type { width: 11.5%; }
-    th.col-chantier { width: 13%; }
+    th.col-jour, td.col-jour { width: 5.5%; font-weight: 700; background: var(--bg-alt); }
+    th.col-type, td.col-type { width: 11%; }
+    th.col-chantier { width: 12.5%; }
     th.col-localite { width: 11%; }
     th.col-kms { width: 6%; }
     th.col-plaque { width: 12%; }
     th.col-heure { width: 7%; }
     th.col-total { width: 7%; }
-    th.col-chauffeur { width: 13%; }
+    th.col-chauffeur { width: 12.5%; }
     th.col-actions { width: 3.5%; }
 
     /* Champs */
@@ -795,10 +795,12 @@
       document.getElementById("pillRCR").innerHTML = `🛋️ RCR : <strong>${counts.rcr} j</strong>`;
     }
 
+    const JOURS_SEMAINE = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+
     /* ===== Structure des dates & Fériés belges ===== */
     function updateDateStructure() {
-      const mois = parseInt(document.getElementById("selectMois").value);
-      const annee = parseInt(document.getElementById("annee").value);
+      const mois = parseInt(document.getElementById("selectMois").value, 10);
+      const annee = parseInt(document.getElementById("annee").value, 10) || new Date().getFullYear();
       const daysInMonth = new Date(annee, mois + 1, 0).getDate();
 
       document.querySelectorAll("#heures tbody tr").forEach((row, index) => {
@@ -807,20 +809,22 @@
           row.style.display = "none";
         } else {
           row.style.display = "table-row";
-          const dayOfWeek = new Date(annee, mois, day).getDay();
+          const dateObj = new Date(annee, mois, day);
+          const dayOfWeek = dateObj.getDay();
           const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
           const ferieName = isBelgianHoliday(day, mois, annee);
+          const jourNom = JOURS_SEMAINE[dayOfWeek];
 
           const labelTd = document.getElementById(`day_label_${day}`);
           if (ferieName) {
-            labelTd.innerHTML = `${day} <span title="Férié : ${ferieName}" style="cursor:help;">🇧🇪</span>`;
+            labelTd.innerHTML = `<span style="font-size:9px; font-weight:600; opacity:0.8; text-transform:uppercase;">${jourNom}</span> <strong>${day}</strong> <span title="Férié : ${ferieName}" style="cursor:help;">🇧🇪</span>`;
             const typeSel = row.querySelector(`select[name="type_${day}"]`);
             if (typeSel && !typeSel.dataset.manual) {
               typeSel.value = "ferie";
               updateRowTypeStyle(row, "ferie");
             }
           } else {
-            labelTd.textContent = day;
+            labelTd.innerHTML = `<span style="font-size:9px; font-weight:600; opacity:0.8; text-transform:uppercase;">${jourNom}</span> <strong>${day}</strong>`;
           }
 
           if (isWeekend) {
