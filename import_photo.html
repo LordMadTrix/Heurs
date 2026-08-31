@@ -272,7 +272,10 @@
 
       <div class="preview-wrap" id="previewWrap">
         <img id="preview" alt="Aperçu de la fiche" />
-        <button class="preview-change" onclick="document.getElementById('photoInput').click()">Changer la photo</button>
+        <div style="display:flex; gap:8px; margin-top:10px; justify-content:center; flex-wrap:wrap;">
+          <button type="button" class="btn secondary sm" onclick="fairePivoterImage()">🔄 Faire pivoter (90°)</button>
+          <button type="button" class="btn secondary sm" onclick="document.getElementById('photoInput').click()">Changer la photo</button>
+        </div>
       </div>
 
       <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="onFileChange(event)" />
@@ -332,7 +335,9 @@
       }, 600);
     }
 
-    /* ===== Gestion de l'image ===== */
+    let imageRotation = 0;
+
+    /* ===== Gestion de l'image & Redimensionnement Canvas ===== */
     function onFileChange(event) {
       const file = event.target.files?.[0];
       if (file) chargerImage(file);
@@ -353,23 +358,66 @@
     }
 
     function chargerImage(file) {
+      imageRotation = 0;
       const reader = new FileReader();
       reader.onload = (e) => {
-        const dataUrl = e.target.result;
-        const [header, b64] = dataUrl.split(",");
-        imageBase64 = b64;
-        imageMime = header.match(/data:([^;]+)/)[1];
-
-        const img = document.getElementById("preview");
-        img.src = dataUrl;
-
-        document.getElementById("previewWrap").style.display = "block";
-        document.getElementById("uploadZone").style.display = "none";
-        document.getElementById("analyzeCard").style.display = "block";
-        document.getElementById("resultsCard").style.display = "none";
-        extractedData = null;
+        const rawImg = new Image();
+        rawImg.onload = () => {
+          traiterEtAfficherImage(rawImg);
+        };
+        rawImg.src = e.target.result;
       };
       reader.readAsDataURL(file);
+    }
+
+    function fairePivoterImage() {
+      imageRotation = (imageRotation + 90) % 360;
+      const img = document.getElementById("preview");
+      const srcImg = new Image();
+      srcImg.onload = () => {
+        traiterEtAfficherImage(srcImg);
+      };
+      srcImg.src = img.src;
+    }
+
+    function traiterEtAfficherImage(imgObj) {
+      const maxDim = 1800;
+      let w = imgObj.width;
+      let h = imgObj.height;
+
+      if (w > maxDim || h > maxDim) {
+        if (w > h) {
+          h = Math.round((h * maxDim) / w);
+          w = maxDim;
+        } else {
+          w = Math.round((w * maxDim) / h);
+          h = maxDim;
+        }
+      }
+
+      const canvas = document.createElement("canvas");
+      const isRotated = (imageRotation === 90 || imageRotation === 270);
+      canvas.width = isRotated ? h : w;
+      canvas.height = isRotated ? w : h;
+
+      const ctx = canvas.getContext("2d");
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.rotate((imageRotation * Math.PI) / 180);
+      ctx.drawImage(imgObj, -w / 2, -h / 2, w, h);
+
+      const optimizedDataUrl = canvas.toDataURL("image/jpeg", 0.88);
+      const [header, b64] = optimizedDataUrl.split(",");
+      imageBase64 = b64;
+      imageMime = "image/jpeg";
+
+      const previewImg = document.getElementById("preview");
+      previewImg.src = optimizedDataUrl;
+
+      document.getElementById("previewWrap").style.display = "block";
+      document.getElementById("uploadZone").style.display = "none";
+      document.getElementById("analyzeCard").style.display = "block";
+      document.getElementById("resultsCard").style.display = "none";
+      extractedData = null;
     }
 
     /* ===== Appel de l'API Gemini ===== */
@@ -397,28 +445,29 @@
           <div class="loader-text">Gemini analyse l'image et déchiffre les lignes…</div>
         </div>`;
 
-      const prompt = `Tu es un expert en lecture OCR de feuilles de prestations d'heures de chantier.
-Analyse cette image attentivement et extrais TOUTES les informations visibles.
-Réponds UNIQUEMENT par un objet JSON valide, sans balises markdown (pas de \`\`\`json), sans texte avant ni après.
+      const prompt = `Tu es un expert OCR spécialisé dans la lecture de feuilles de prestations d'heures de chantier.
+Analyse cette image et extrais toutes les informations ligne par ligne.
+Réponds UNIQUEMENT par un objet JSON valide.
 
 Format JSON attendu :
 {
-  "nom": "Nom de famille de l'ouvrier",
-  "prenom": "Prénom de l'ouvrier",
+  "nom": "Nom",
+  "prenom": "Prenom",
   "selectMois": 0,
   "annee": "2026",
-  "chantier_1": "...", "localite_1": "...", "kms_1": "10.5",
+  "chantier_1": "Description", "localite_1": "Ville", "kms_1": "10",
   "plaque_1": "1-ABC-123", "debut_1": "07:00", "fin_1": "16:00",
   "aent_1": "00:00", "total_1": "08:30", "chauffeur_1": "Nom",
-  ... (répète pour chaque jour 1 à 31 détecté)
+  ... (pour chaque jour présent)
 }
 
-Règles impératives :
-- selectMois : entier entre 0 et 11 (0=Janvier, 1=Février, 2=Mars, 3=Avril, 4=Mai, 5=Juin, 6=Juillet, 7=Août, 8=Septembre, 9=Octobre, 10=Novembre, 11=Décembre)
-- annee : chaîne "YYYY" (ex: "2026")
+Règles de parsing strictes :
+- selectMois : entier de 0 à 11 (0=Janvier, 1=Février, 2=Mars, 3=Avril, 4=Mai, 5=Juin, 6=Juillet, 7=Août, 8=Septembre, 9=Octobre, 10=Novembre, 11=Décembre)
+- annee : chaîne "YYYY"
 - Heures au format strict "HH:MM" (ex: "07:00", "16:30")
-- kms : nombre décimal avec un point (ex: "12.5")
-- N'invente aucune donnée : si une case est vide ou illisible, omet ce champ.`;
+- kms : nombre décimal simple (ex: "12.5")
+- N'utilise aucun guillemet double à l'intérieur des valeurs texte.
+- Si une case est vide ou illisible, n'inclus pas ce champ.`;
 
       try {
         const resp = await fetch(
@@ -436,7 +485,7 @@ Règles impératives :
               generationConfig: {
                 temperature: 0.1,
                 maxOutputTokens: 8192,
-                responseMimeType: "application/json"
+                response_mime_type: "application/json"
               }
             })
           }
@@ -449,16 +498,18 @@ Règles impératives :
 
         const result = await resp.json();
         let rawText = result.candidates?.[0]?.content?.parts?.[0]?.text || "";
-        
+        console.log("Réponse brute Gemini:", rawText);
+
         extractedData = parseGeminiJSON(rawText);
         afficherResultats(extractedData);
         showToast("Analyse terminée avec succès !", "success");
 
       } catch (e) {
+        console.error("Erreur analyse:", e);
         document.getElementById("resultsContent").innerHTML = `
           <div class="error-box">
             <strong>❌ Échec de l'analyse :</strong> ${escapeHTML(e.message)}<br><br>
-            Vérifiez que votre clé API est valide et que la photo est bien nette, puis réessayez.
+            Astuce : Si la photo est orientée sur le côté, utilisez le bouton "🔄 Faire pivoter" avant de réanalyser.
           </div>`;
         showToast("Erreur lors de l'analyse", "error");
       } finally {
@@ -481,16 +532,24 @@ Règles impératives :
         return JSON.parse(cleaned);
       } catch (e) {}
 
-      // Tentative 2 : Nettoyage des virgules en trop et sauts de lignes sauvages
+      // Tentative 2 : Nettoyage et complétion d'un JSON tronqué
       try {
         let fixed = cleaned
-          .replace(/,\s*([\}\]])/g, "$1") // Supprime trailing commas
-          .replace(/[\r\n\t]/g, " ")       // Supprime newlines non échappés
-          .replace(/\\'/g, "'");
+          .replace(/,\s*([\}\]])/g, "$1")
+          .replace(/[\r\n\t]/g, " ");
+
+        // Si le JSON a été coupé au milieu d'une chaîne
+        const quoteCount = (fixed.match(/"/g) || []).length;
+        if (quoteCount % 2 !== 0) {
+          fixed += '"';
+        }
+        if (!fixed.endsWith("}")) {
+          fixed += "}";
+        }
         return JSON.parse(fixed);
       } catch (e) {}
 
-      // Tentative 3 : Extraction chirurgicale des champs par expression régulière
+      // Tentative 3 : Extraction chirurgicale des paires clé/valeur par Regex
       try {
         const data = {};
         const regex = /"([a-zA-Z0-9_]+)"\s*:\s*(?:"([^"]*)"|([0-9.]+)|(true|false)|null)/g;
@@ -508,7 +567,7 @@ Règles impératives :
         }
       } catch (e) {}
 
-      throw new Error("Format de réponse JSON incomplet. Veuillez reprendre la photo de plus près ou avec un meilleur éclairage.");
+      throw new Error("Impossible de décoder les données. Vérifiez que la feuille est lisible et bien orientée.");
     }
 
     /* ===== Affichage des résultats ===== */
