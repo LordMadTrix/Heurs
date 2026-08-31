@@ -3,61 +3,54 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>Import Photo — Heures Mensuelles</title>
+  <title>Import Photo IA — Heures Mensuelles</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="shared.css" />
   <style>
-    :root {
-      --accent: #4f46e5;
-      --accent-hover: #4338ca;
-      --text: #1e293b;
-      --muted: #6b7280;
-      --bg: #f8fafc;
-      --border: #e2e8f0;
-      --green: #10b981;
-      --red: #ef4444;
-    }
-
-    * { box-sizing: border-box; }
-
     body {
-      font-family: 'Outfit', 'Segoe UI', Roboto, Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      margin: 0;
-      padding: 20px 16px 40px;
-      font-size: 14px;
+      background: var(--bg-page);
+      padding: 0 0 40px;
     }
 
-    .container { max-width: 640px; margin: 0 auto; }
+    .container {
+      max-width: 680px;
+      margin: 30px auto;
+      padding: 0 16px;
+    }
 
     .header-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 22px;
+      margin-bottom: 20px;
       gap: 10px;
       flex-wrap: wrap;
     }
 
-    h1 { margin: 0; font-size: 22px; color: var(--accent); font-weight: 700; }
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      color: var(--primary);
+      font-weight: 700;
+    }
 
     .card {
-      background: #fff;
-      border-radius: 12px;
+      background: var(--bg-card);
+      border-radius: var(--radius-md);
       padding: 20px;
       margin-bottom: 16px;
       border: 1px solid var(--border);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      box-shadow: var(--shadow-sm);
     }
 
     .card h2 {
       margin: 0 0 14px;
       font-size: 11px;
       font-weight: 700;
-      color: var(--muted);
+      color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.06em;
     }
@@ -71,67 +64,61 @@
 
     .api-row input {
       flex: 1;
-      height: 42px;
+      height: 40px;
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: var(--radius-sm);
       padding: 0 12px;
       font-family: inherit;
       font-size: 14px;
-      color: var(--text);
+      color: var(--text-main);
       background: #fff;
       outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      transition: var(--transition);
     }
+
     .api-row input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
     }
 
     .api-hint {
       font-size: 12px;
-      color: var(--muted);
+      color: var(--text-muted);
       margin-top: 8px;
+      margin-bottom: 0;
     }
-    .api-hint a { color: var(--accent); }
-
-    .api-saved {
-      font-size: 12px;
-      color: var(--green);
-      font-weight: 600;
-      opacity: 0;
-      transition: opacity 0.3s;
-      margin-top: 6px;
-    }
-    .api-saved.show { opacity: 1; }
+    .api-hint a { color: var(--primary); font-weight: 600; text-decoration: none; }
 
     /* Zone d'upload */
     .upload-zone {
       border: 2px dashed var(--border);
-      border-radius: 12px;
+      border-radius: var(--radius-md);
       padding: 32px 20px;
       text-align: center;
       cursor: pointer;
-      transition: border-color 0.2s, background 0.2s;
+      transition: var(--transition);
       position: relative;
-    }
-    .upload-zone:hover, .upload-zone.drag-over {
-      border-color: var(--accent);
-      background: #f5f3ff;
+      background: #fdfdfd;
     }
 
-    .upload-icon { font-size: 40px; display: block; margin-bottom: 10px; }
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .upload-icon { font-size: 40px; display: block; margin-bottom: 8px; }
 
     .upload-label {
       font-size: 15px;
       font-weight: 600;
-      color: var(--text);
+      color: var(--text-main);
       display: block;
-      margin-bottom: 5px;
+      margin-bottom: 4px;
     }
 
     .upload-sub {
       font-size: 12px;
-      color: var(--muted);
+      color: var(--text-muted);
     }
 
     /* Prévisualisation */
@@ -143,58 +130,30 @@
 
     .preview-wrap img {
       width: 100%;
-      border-radius: 8px;
+      max-height: 380px;
+      object-fit: contain;
+      border-radius: var(--radius-sm);
       border: 1px solid var(--border);
+      background: #000;
       display: block;
     }
 
     .preview-change {
       position: absolute;
-      top: 8px;
-      right: 8px;
-      background: rgba(0,0,0,0.55);
+      top: 10px;
+      right: 10px;
+      background: rgba(0,0,0,0.65);
       color: #fff;
       border: none;
-      border-radius: 6px;
-      padding: 5px 10px;
+      border-radius: var(--radius-sm);
+      padding: 6px 12px;
       font-size: 12px;
       font-weight: 600;
       cursor: pointer;
       font-family: inherit;
+      transition: var(--transition);
     }
-
-    /* Boutons */
-    .btn {
-      border: 0;
-      padding: 11px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 700;
-      font-size: 14px;
-      font-family: inherit;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
-      transition: all 0.2s;
-      width: 100%;
-    }
-
-    .btn.primary { background: var(--accent); color: #fff; }
-    .btn.primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
-    .btn.primary:disabled { background: #c7d2fe; cursor: not-allowed; transform: none; }
-
-    .btn.secondary {
-      background: #fff;
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-    .btn.secondary:hover { background: var(--bg); }
-
-    .btn.success { background: var(--green); color: #fff; }
-    .btn.success:hover { background: #059669; transform: translateY(-1px); }
-
-    .btn.sm { width: auto; padding: 8px 14px; font-size: 13px; font-weight: 600; }
+    .preview-change:hover { background: rgba(0,0,0,0.85); }
 
     /* Loader */
     .loader-wrap {
@@ -208,8 +167,8 @@
     .spinner {
       width: 40px;
       height: 40px;
-      border: 4px solid #e0e7ff;
-      border-top-color: var(--accent);
+      border: 4px solid var(--primary-light);
+      border-top-color: var(--primary);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
@@ -217,7 +176,7 @@
 
     .loader-text {
       font-size: 14px;
-      color: var(--muted);
+      color: var(--text-muted);
       font-weight: 500;
     }
 
@@ -230,16 +189,16 @@
     }
     .summary-table td {
       padding: 8px 10px;
-      border-bottom: 1px solid #f1f5f9;
+      border-bottom: 1px solid var(--border);
     }
     .summary-table td:first-child {
-      color: var(--muted);
+      color: var(--text-muted);
       font-weight: 600;
       width: 45%;
     }
     .summary-table td:last-child {
       font-weight: 700;
-      color: var(--text);
+      color: var(--text-main);
     }
     .summary-table tr:last-child td { border-bottom: none; }
 
@@ -250,28 +209,27 @@
       margin-bottom: 16px;
     }
     .day-chip {
-      background: #ede9fe;
-      color: var(--accent);
-      border-radius: 6px;
+      background: var(--primary-light);
+      color: var(--primary);
+      border-radius: var(--radius-sm);
       padding: 3px 8px;
       font-size: 11px;
       font-weight: 700;
     }
-    .day-chip.weekend { background: #f1f5f9; color: var(--muted); }
 
     /* Erreur */
     .error-box {
-      background: #fef2f2;
+      background: var(--danger-light);
       border: 1px solid #fecaca;
-      border-radius: 8px;
+      border-radius: var(--radius-sm);
       padding: 14px;
-      color: var(--red);
+      color: var(--danger);
       font-size: 13px;
       line-height: 1.5;
     }
 
     @media (max-width: 500px) {
-      body { padding: 12px 12px 30px; }
+      .container { padding: 0 12px; }
       h1 { font-size: 18px; }
     }
   </style>
@@ -281,100 +239,100 @@
   <div class="container">
 
     <div class="header-row">
-      <h1>📷 Import par photo</h1>
-      <button class="btn secondary sm" onclick="window.location.href='heures_mensuelles.html'">← Retour</button>
+      <h1>📷 Lecture Automatique par Photo (IA)</h1>
+      <a href="index.html" class="btn secondary sm">← Saisie manuelle</a>
     </div>
 
     <!-- Étape 1 : Clé API -->
     <div class="card">
       <h2>Étape 1 — Clé API Google Gemini</h2>
       <div class="api-row">
-        <input type="password" id="apiKey" placeholder="AIzaSy…" autocomplete="off"
-          oninput="verifierCle()" />
-        <button class="btn secondary sm" onclick="toggleApiVis()">👁</button>
+        <input type="password" id="apiKey" placeholder="AIzaSy…" autocomplete="off" oninput="sauvegarderCle()" />
+        <button class="btn secondary sm" type="button" onclick="togglePasswordVis()">👁</button>
       </div>
       <p class="api-hint">
-        Clé gratuite sur
+        Obtenez votre clé gratuite sur
         <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">aistudio.google.com</a>
-        — elle n'est stockée que sur cet appareil.
+        — elle reste enregistrée localement dans votre navigateur.
       </p>
-      <div class="api-saved" id="apiSaved">✓ Clé enregistrée</div>
     </div>
 
     <!-- Étape 2 : Photo -->
     <div class="card">
-      <h2>Étape 2 — Photo de la fiche</h2>
+      <h2>Étape 2 — Photo ou Scan de la feuille d'heures</h2>
       <div class="upload-zone" id="uploadZone"
         onclick="document.getElementById('photoInput').click()"
         ondragover="onDragOver(event)"
         ondragleave="onDragLeave(event)"
         ondrop="onDrop(event)">
         <span class="upload-icon">📄</span>
-        <span class="upload-label">Appuyer pour photographier ou choisir</span>
-        <span class="upload-sub">Photo, scan ou fichier image — JPG, PNG, HEIC…</span>
+        <span class="upload-label">Cliquez pour prendre une photo ou choisir un fichier</span>
+        <span class="upload-sub">Fichier photo, scan, image (JPG, PNG, WEBP)</span>
       </div>
+
       <div class="preview-wrap" id="previewWrap">
         <img id="preview" alt="Aperçu de la fiche" />
-        <button class="preview-change" onclick="document.getElementById('photoInput').click()">Changer</button>
+        <button class="preview-change" onclick="document.getElementById('photoInput').click()">Changer la photo</button>
       </div>
-      <input type="file" id="photoInput" accept="image/*" style="display:none"
-        onchange="onFileChange(event)" />
+
+      <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="onFileChange(event)" />
     </div>
 
     <!-- Étape 3 : Analyse -->
     <div class="card" id="analyzeCard" style="display:none">
-      <h2>Étape 3 — Analyse Gemini</h2>
-      <button class="btn primary" id="analyzeBtn" onclick="analyser()">
-        🔍 Analyser la fiche avec Gemini
+      <h2>Étape 3 — Reconnaissance IA</h2>
+      <div style="display:flex; gap:10px; align-items:center; margin-bottom:12px;">
+        <label for="modelSelect" style="font-size:12px; font-weight:600; color:var(--text-muted);">Modèle Gemini :</label>
+        <select id="modelSelect" style="height:34px; border:1px solid var(--border); border-radius:6px; padding:0 8px; font-family:inherit; font-size:12px;">
+          <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Recommandé - Ultra rapide & précis)</option>
+          <option value="gemini-1.5-flash">Gemini 1.5 Flash (Fallback)</option>
+        </select>
+      </div>
+      <button class="btn primary lg" id="analyzeBtn" onclick="analyserPhoto()" style="width:100%;">
+        🔍 Analyser et extraire les heures avec l'IA
       </button>
     </div>
 
     <!-- Résultats -->
     <div class="card" id="resultsCard" style="display:none">
-      <h2>Données extraites</h2>
+      <h2>Données détectées</h2>
       <div id="resultsContent"></div>
     </div>
 
   </div>
 
+  <script src="shared.js"></script>
   <script>
-    const MOIS_NOMS = ["Janvier","Février","Mars","Avril","Mai","Juin",
-                       "Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
-
     let imageBase64 = null;
-    let imageMime   = null;
+    let imageMime = null;
     let extractedData = null;
+    let saveTimer = null;
 
-    /* ===== Init ===== */
     window.addEventListener("DOMContentLoaded", () => {
-      const saved = localStorage.getItem("gemini_api_key");
-      if (saved) {
-        document.getElementById("apiKey").value = saved;
-        document.getElementById("apiSaved").classList.add("show");
+      initNavBar("import_photo");
+      const savedKey = localStorage.getItem("gemini_api_key");
+      if (savedKey) {
+        document.getElementById("apiKey").value = savedKey;
       }
     });
 
-    /* ===== Clé API ===== */
-    let saveTimer = null;
-    function verifierCle() {
+    function togglePasswordVis() {
+      const inp = document.getElementById("apiKey");
+      inp.type = (inp.type === "password" ? "text" : "password");
+    }
+
+    function sauvegarderCle() {
       clearTimeout(saveTimer);
       saveTimer = setTimeout(() => {
         const key = document.getElementById("apiKey").value.trim();
         if (key.length > 10) {
           localStorage.setItem("gemini_api_key", key);
-          const badge = document.getElementById("apiSaved");
-          badge.classList.add("show");
-          setTimeout(() => badge.classList.remove("show"), 2000);
+          showToast("Clé Gemini mémorisée", "success", 2000);
         }
-      }, 800);
+      }, 600);
     }
 
-    function toggleApiVis() {
-      const inp = document.getElementById("apiKey");
-      inp.type = inp.type === "password" ? "text" : "password";
-    }
-
-    /* ===== Upload image ===== */
+    /* ===== Gestion de l'image ===== */
     function onFileChange(event) {
       const file = event.target.files?.[0];
       if (file) chargerImage(file);
@@ -400,69 +358,71 @@
         const dataUrl = e.target.result;
         const [header, b64] = dataUrl.split(",");
         imageBase64 = b64;
-        imageMime   = header.match(/data:([^;]+)/)[1];
+        imageMime = header.match(/data:([^;]+)/)[1];
 
         const img = document.getElementById("preview");
         img.src = dataUrl;
 
         document.getElementById("previewWrap").style.display = "block";
-        document.getElementById("uploadZone").style.display  = "none";
+        document.getElementById("uploadZone").style.display = "none";
         document.getElementById("analyzeCard").style.display = "block";
-        document.getElementById("resultsCard").style.display  = "none";
+        document.getElementById("resultsCard").style.display = "none";
         extractedData = null;
       };
       reader.readAsDataURL(file);
     }
 
-    /* ===== Analyse Gemini ===== */
-    async function analyser() {
-      const apiKey = localStorage.getItem("gemini_api_key") || document.getElementById("apiKey").value.trim();
+    /* ===== Appel de l'API Gemini ===== */
+    async function analyserPhoto() {
+      const apiKey = (document.getElementById("apiKey").value || localStorage.getItem("gemini_api_key") || "").trim();
       if (!apiKey) {
-        alert("Veuillez d'abord entrer votre clé API Gemini (Étape 1).");
+        showToast("Veuillez d'abord renseigner votre clé API Gemini.", "warning");
+        document.getElementById("apiKey").focus();
         return;
       }
       if (!imageBase64) {
-        alert("Veuillez d'abord choisir une photo (Étape 2).");
+        showToast("Veuillez d'abord choisir une photo.", "warning");
         return;
       }
 
+      const model = document.getElementById("modelSelect").value || "gemini-2.5-flash";
       const btn = document.getElementById("analyzeBtn");
       btn.disabled = true;
-      btn.textContent = "Analyse en cours…";
+      btn.textContent = "Analyse de la fiche en cours…";
 
       document.getElementById("resultsCard").style.display = "block";
       document.getElementById("resultsContent").innerHTML = `
         <div class="loader-wrap">
           <div class="spinner"></div>
-          <div class="loader-text">Gemini lit la fiche…</div>
+          <div class="loader-text">Gemini analyse l'image et déchiffre les lignes…</div>
         </div>`;
 
-      const prompt = `Tu es un expert en lecture de feuilles de prestations horaires de chantier.
-Analyse cette image et extrais TOUTES les données visibles. Réponds UNIQUEMENT avec un objet JSON valide, sans markdown, sans \`\`\`, sans texte avant ou après.
+      const prompt = `Tu es un expert en lecture OCR de feuilles de prestations d'heures de chantier.
+Analyse cette image attentivement et extrais TOUTES les informations visibles.
+Réponds UNIQUEMENT par un objet JSON valide, sans balises markdown (pas de \`\`\`json), sans texte avant ni après.
 
-Structure JSON attendue :
+Format JSON attendu :
 {
-  "nom": "nom de famille",
-  "prenom": "prénom",
-  "selectMois": 3,
+  "nom": "Nom de famille de l'ouvrier",
+  "prenom": "Prénom de l'ouvrier",
+  "selectMois": 0,
   "annee": "2026",
   "chantier_1": "...", "localite_1": "...", "kms_1": "10.5",
   "plaque_1": "1-ABC-123", "debut_1": "07:00", "fin_1": "16:00",
-  "aent_1": "00:00", "total_1": "08:30", "chauffeur_1": "Dupont",
-  ... (pour chaque jour 1 à 31)
+  "aent_1": "00:00", "total_1": "08:30", "chauffeur_1": "Nom",
+  ... (répète pour chaque jour 1 à 31 détecté)
 }
 
-Règles :
-- selectMois : entier 0=Janvier 1=Février 2=Mars 3=Avril 4=Mai 5=Juin 6=Juillet 7=Août 8=Septembre 9=Octobre 10=Novembre 11=Décembre
-- annee : chaîne "YYYY"
-- Heures au format "HH:MM" (ex: "07:30", "16:00")
-- kms : nombre décimal sans unité (ex: "12.5")
-- Omets les champs vides ou illisibles
-- N'invente aucune donnée : si une cellule est vide ou illisible, ignore ce champ`;
+Règles impératives :
+- selectMois : entier entre 0 et 11 (0=Janvier, 1=Février, 2=Mars, 3=Avril, 4=Mai, 5=Juin, 6=Juillet, 7=Août, 8=Septembre, 9=Octobre, 10=Novembre, 11=Décembre)
+- annee : chaîne "YYYY" (ex: "2026")
+- Heures au format strict "HH:MM" (ex: "07:00", "16:30")
+- kms : nombre décimal avec un point (ex: "12.5")
+- N'invente aucune donnée : si une case est vide ou illisible, omet ce champ.`;
 
       try {
         const resp = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -473,84 +433,97 @@ Règles :
                   { inline_data: { mime_type: imageMime, data: imageBase64 } }
                 ]
               }],
-              generationConfig: { temperature: 0.1, maxOutputTokens: 4096 }
+              generationConfig: {
+                temperature: 0.1,
+                maxOutputTokens: 4096
+              }
             })
           }
         );
 
         if (!resp.ok) {
-          const err = await resp.json().catch(() => ({}));
-          throw new Error(err.error?.message || `Erreur HTTP ${resp.status}`);
+          const errData = await resp.json().catch(() => ({}));
+          throw new Error(errData.error?.message || `Erreur serveur HTTP ${resp.status}`);
         }
 
         const result = await resp.json();
-        let text = result.candidates?.[0]?.content?.parts?.[0]?.text || "";
-        text = text.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+        let rawText = result.candidates?.[0]?.content?.parts?.[0]?.text || "";
+        rawText = rawText.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
 
-        extractedData = JSON.parse(text);
+        extractedData = JSON.parse(rawText);
         afficherResultats(extractedData);
+        showToast("Analyse terminée avec succès !", "success");
 
       } catch (e) {
         document.getElementById("resultsContent").innerHTML = `
           <div class="error-box">
-            <strong>❌ Erreur :</strong> ${e.message}<br><br>
-            Vérifiez votre clé API et que l'image est lisible, puis réessayez.
+            <strong>❌ Échec de l'analyse :</strong> ${escapeHTML(e.message)}<br><br>
+            Vérifiez que votre clé API est valide et active sur Google AI Studio, puis réessayez.
           </div>`;
+        showToast("Erreur lors de l'analyse", "error");
       } finally {
         btn.disabled = false;
-        btn.innerHTML = "🔄 Réanalyser";
+        btn.innerHTML = "🔄 Réanalyser la photo";
       }
     }
 
     /* ===== Affichage des résultats ===== */
     function afficherResultats(data) {
       const moisIdx = parseInt(data.selectMois ?? -1);
-      const moisNom = moisIdx >= 0 ? MOIS_NOMS[moisIdx] : "?";
-      const nom     = [data.prenom, data.nom].filter(Boolean).join(" ") || "—";
+      const moisNom = moisIdx >= 0 ? MOIS_NOMS[moisIdx] : "Mois non spécifié";
+      const nom = [data.nom, data.prenom].filter(Boolean).join(" ") || "Non spécifié";
 
-      // Jours avec données
-      const jours = [];
+      const joursDetectes = [];
       for (let j = 1; j <= 31; j++) {
-        if (data[`debut_${j}`] || data[`chantier_${j}`]) jours.push(j);
+        if (data[`debut_${j}`] || data[`chantier_${j}`] || data[`kms_${j}`]) {
+          joursDetectes.push(j);
+        }
       }
-
-      const chips = jours.map(j => `<span class="day-chip">${j}</span>`).join("");
 
       let kmTotal = 0;
       for (let j = 1; j <= 31; j++) {
         kmTotal += parseFloat(data[`kms_${j}`] || 0) || 0;
       }
 
+      const chipsHtml = joursDetectes.map(j => `<span class="day-chip">Jour ${j}</span>`).join("");
+
       document.getElementById("resultsContent").innerHTML = `
         <table class="summary-table">
-          <tr><td>Ouvrier</td><td>${esc(nom)}</td></tr>
-          <tr><td>Période</td><td>${esc(moisNom)} ${esc(String(data.annee || ""))}</td></tr>
-          <tr><td>Jours détectés</td><td>${jours.length} jour${jours.length > 1 ? "s" : ""}</td></tr>
-          ${kmTotal > 0 ? `<tr><td>Total km</td><td>${kmTotal.toFixed(1)} km</td></tr>` : ""}
+          <tr><td>Ouvrier détecté</td><td>${escapeHTML(nom)}</td></tr>
+          <tr><td>Période</td><td>${escapeHTML(moisNom)} ${escapeHTML(String(data.annee || ""))}</td></tr>
+          <tr><td>Jours avec prestations</td><td>${joursDetectes.length} jour${joursDetectes.length > 1 ? "s" : ""}</td></tr>
+          ${kmTotal > 0 ? `<tr><td>Total kilomètres</td><td>${kmTotal.toFixed(1)} km</td></tr>` : ""}
         </table>
-        ${jours.length > 0 ? `<div class="day-chips">${chips}</div>` : ""}
-        <button class="btn success" onclick="importer()">
-          ✅ Importer dans le formulaire
+        ${joursDetectes.length > 0 ? `<div class="day-chips">${chipsHtml}</div>` : ""}
+        <button class="btn success lg" onclick="importerDansFormulaire()" style="width:100%;">
+          ✅ Valider et injecter dans la feuille d'heures
         </button>`;
     }
 
-    function esc(str) {
-      return String(str)
-        .replace(/&/g,"&amp;").replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-    }
-
-    /* ===== Import dans l'app ===== */
-    function importer() {
+    /* ===== Injection dans index.html ===== */
+    function importerDansFormulaire() {
       if (!extractedData) return;
 
-      const mois  = String(extractedData.selectMois  ?? new Date().getMonth());
-      const annee = String(extractedData.annee        ?? new Date().getFullYear());
-      const key   = `heures_v2_${mois}_${annee}`;
+      const mois = String(extractedData.selectMois ?? new Date().getMonth());
+      const annee = String(extractedData.annee ?? new Date().getFullYear());
+      const key = getStorageKey(mois, annee);
 
-      localStorage.setItem(key, JSON.stringify(extractedData));
+      // Fusionner avec les éventuelles données existantes
+      let merged = {};
+      try {
+        const existing = localStorage.getItem(key);
+        if (existing) merged = JSON.parse(existing);
+      } catch (e) {}
+
+      Object.assign(merged, extractedData);
+
+      localStorage.setItem(key, JSON.stringify(merged));
       localStorage.setItem("heures_nav", JSON.stringify({ mois, annee }));
-      window.location.href = "heures_mensuelles.html";
+
+      showToast("Données injectées avec succès !", "success");
+      setTimeout(() => {
+        window.location.href = "index.html";
+      }, 500);
     }
   </script>
 </body>

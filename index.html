@@ -3,32 +3,19 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>HEURES MENSUELLES PAR OUVRIER</title>
+  <title>Feuille de Prestations — Heures Mensuelles</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="shared.css" />
   <style>
     :root {
-      --border: #d1d5db;
-      --muted: #6b7280;
-      --accent: #4f46e5;
-      --accent-hover: #4338ca;
-      --bg-page: #f8fafc;
-      --bg-sheet: #ffffff;
-      --text: #1e293b;
       --weekend-bg: #f1f5f9;
       --row-hover: #f8fafc;
     }
 
-    * {
-      box-sizing: border-box;
-    }
-
     body {
-      font-family: "Outfit", "Segoe UI", Roboto, Arial, sans-serif;
-      color: var(--text);
-      margin: 0;
       background: var(--bg-page);
       font-size: 13px;
       line-height: 1.5;
@@ -39,11 +26,11 @@
       max-width: 210mm;
       width: 100%;
       min-height: 297mm;
-      margin: 40px auto;
-      padding: 15mm;
-      background: var(--bg-sheet);
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-      border-radius: 4px;
+      margin: 30px auto;
+      padding: 12mm 15mm;
+      background: #ffffff;
+      box-shadow: var(--shadow-lg);
+      border-radius: var(--radius-md);
       position: relative;
     }
 
@@ -51,63 +38,68 @@
     .table-scroll {
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
-      border-radius: 8px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 20px;
     }
+
     .table-scroll table {
-      min-width: 600px;
+      min-width: 720px;
     }
 
     h1 {
-      font-size: 22px;
-      color: var(--accent);
+      font-size: 20px;
+      color: var(--primary);
       text-align: center;
-      margin: 0 0 25px;
+      margin: 0 0 20px;
       font-weight: 700;
       letter-spacing: -0.02em;
       text-transform: uppercase;
     }
 
-    .header {
+    .header-form {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1.2fr;
       gap: 15px;
-      margin-bottom: 25px;
-      background: #fdfdfd;
-      padding: 15px;
-      border-radius: 8px;
-      border: 1px solid #f1f5f9;
+      margin-bottom: 20px;
+      background: #ffffff;
+      padding: 14px 18px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
     }
 
-    .header .field {
+    .header-form .field {
       display: flex;
       flex-direction: column;
       gap: 4px;
     }
 
-    .header .field label {
+    .header-form .field label {
       font-size: 10px;
       font-weight: 700;
-      color: var(--muted);
+      color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
 
-    .header input {
+    .header-form input,
+    .header-form select {
       width: 100%;
-      height: 32px;
-      border: 1px solid #e2e8f0;
-      border-radius: 6px;
+      height: 36px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
       padding: 0 10px;
       font-family: inherit;
       font-size: 13px;
       background: #fff;
-      transition: all 0.2s;
-      text-align: left;
+      transition: var(--transition);
+      color: var(--text-main);
     }
 
-    .header input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    .header-form input:focus,
+    .header-form select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
       outline: none;
     }
 
@@ -119,27 +111,33 @@
       table-layout: fixed;
       font-size: 11px;
       border: 1px solid var(--border);
-      border-radius: 8px;
-      /* overflow: hidden; */
-      /* Retiré pour le sticky header */
+      border-radius: var(--radius-sm);
     }
 
     thead th {
       position: sticky;
       top: 0;
       z-index: 10;
-      box-shadow: inset 0 -1px 0 var(--border);
+      background: #f8fafc;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-size: 9px;
+      letter-spacing: 0.05em;
+      height: 36px;
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      padding: 4px 2px;
     }
 
     th,
     td {
       border-right: 1px solid var(--border);
       border-bottom: 1px solid var(--border);
-      padding: 6px 4px;
+      padding: 3px 2px;
       text-align: center;
       vertical-align: middle;
-      word-wrap: break-word;
-      transition: background-color 0.2s;
+      transition: background-color 0.15s;
     }
 
     th:last-child,
@@ -151,63 +149,55 @@
       border-bottom: none;
     }
 
-    th {
-      background: #f8fafc;
-      font-weight: 600;
-      color: var(--muted);
-      text-transform: uppercase;
-      font-size: 9px;
-      letter-spacing: 0.05em;
-      height: 40px;
-    }
-
     tbody tr:hover {
       background-color: var(--row-hover);
     }
 
-    /* Largeurs */
-    th:nth-child(1),
-    td:nth-child(1) {
-      width: 35px;
-      font-weight: 700;
-      background: #f8fafc;
-    }
-
-    th.col-weekend,
-    td.col-weekend {
-      width: 30px;
-    }
+    /* Largeurs colonnes */
+    th.col-jour, td.col-jour { width: 34px; font-weight: 700; background: #f8fafc; }
+    th.col-weekend, td.col-weekend { width: 28px; }
+    th.col-chantier { width: 90px; }
+    th.col-localite { width: 80px; }
+    th.col-kms { width: 50px; }
+    th.col-plaque { width: 95px; }
+    th.col-heure { width: 55px; }
+    th.col-total { width: 55px; }
+    th.col-chauffeur { width: 85px; }
+    th.col-actions { width: 32px; }
 
     /* Champs */
-    input,
-    select {
+    table input,
+    table select {
       font-family: inherit;
       font-size: 11px;
       width: 100%;
       border: none;
       background: transparent;
       outline: none;
-      padding: 4px;
+      padding: 3px 2px;
       text-align: center;
-      border-radius: 4px;
-      transition: background-color 0.2s;
+      border-radius: 3px;
+      transition: background-color 0.15s;
+      color: var(--text-main);
     }
 
-    input:not([readonly]):focus {
-      background: #fff;
-      box-shadow: inset 0 0 0 1px var(--accent);
+    table input:not([readonly]):focus,
+    table select:focus {
+      background: #ffffff;
+      box-shadow: inset 0 0 0 1px var(--primary);
     }
 
-    input[readonly] {
-      font-weight: 600;
-      color: var(--accent);
+    table input[readonly] {
+      font-weight: 700;
+      color: var(--primary);
     }
 
     .plaque-autre {
       display: none;
       margin-top: 2px;
-      border: 1px solid var(--accent) !important;
-      background: #fff !important;
+      border: 1px solid var(--primary) !important;
+      background: #ffffff !important;
+      border-radius: 4px;
     }
 
     /* Nettoyage UI native */
@@ -216,135 +206,93 @@
       -webkit-appearance: none;
     }
 
-    select {
-      appearance: none;
-      cursor: pointer;
-    }
-
-    /* Weekend grisé */
+    /* Weekends */
     .weekend {
       background-color: var(--weekend-bg) !important;
-      color: #94a3b8;
+      color: var(--text-light);
     }
 
-    .weekend input {
-      opacity: 0.3;
+    .weekend input:not([readonly]),
+    .weekend select {
+      opacity: 0.45;
     }
 
-    /* Pied de tableau et note */
+    .weekend.has-hours {
+      background-color: #fef3c7 !important;
+      color: var(--text-main);
+    }
+
+    .weekend.has-hours input,
+    .weekend.has-hours select {
+      opacity: 1;
+    }
+
+    /* Pied de tableau */
     tfoot td {
       font-weight: 700;
       background: #f8fafc;
-      padding: 10px;
+      padding: 8px 12px;
     }
 
     #totalMois,
-    #heuresSup {
-      font-size: 14px;
-      color: var(--accent);
+    #heuresSup,
+    #fraisKm {
+      font-size: 13px;
+      color: var(--primary);
+      font-weight: 700;
+      text-align: center;
     }
 
     /* Actions */
-    .actions {
-      margin-top: 25px;
+    .actions-bar {
       display: flex;
       gap: 8px;
-      /* Gap réduit */
       flex-wrap: wrap;
       justify-content: flex-end;
+      margin-top: 15px;
     }
 
-    button {
-      background: var(--accent);
-      color: #fff;
-      border: 0;
-      padding: 8px 14px;
-      /* Taille réduite */
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 13px;
-      /* Police un peu plus petite */
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-      touch-action: manipulation;
+    .shortcuts-hint {
+      text-align: right;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin: 8px 0 0;
     }
 
-    button:hover {
-      background: var(--accent-hover);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-
-    button:active {
-      transform: translateY(0);
-    }
-
-    button.secondary {
-      background: #fff;
-      color: var(--text);
-      border: 1px solid #e2e8f0;
-    }
-
-    button.secondary:hover {
-      background: #f8fafc;
-    }
-
-    /* ===== Tablette / iPad ===== */
+    /* ===== Tablette & Mobile ===== */
     @media screen and (max-width: 830px) {
-      body { padding: 0; }
-
       .sheet {
         margin: 0;
         padding: 12px;
         border-radius: 0;
-        min-height: 100dvh;
+        min-height: auto;
         box-shadow: none;
       }
 
-      h1 { font-size: 16px; margin-bottom: 14px; }
+      h1 { font-size: 16px; margin-bottom: 12px; }
 
-      .header {
+      .header-form {
         grid-template-columns: 1fr 1fr;
         gap: 10px;
         padding: 10px;
       }
 
-      .header input,
-      .header select {
-        height: 40px;
-        font-size: 14px;
-      }
-
-      table { font-size: 12px; }
-
-      th { font-size: 10px; height: 36px; }
-
-      td, th { padding: 5px 4px; }
-
-      input, select { font-size: 12px; min-height: 30px; }
-
-      button { min-height: 40px; font-size: 13px; }
-
-      .actions { justify-content: flex-start; gap: 6px; }
+      .actions-bar { justify-content: flex-start; }
     }
 
-    @media screen and (max-width: 500px) {
-      .header { grid-template-columns: 1fr; }
+    @media screen and (max-width: 540px) {
+      .header-form { grid-template-columns: 1fr; }
     }
 
-    /* ===== Impression A4 — une seule page ===== */
+    /* ===== Impression A4 Exacte (1 seule page) ===== */
     @page {
       size: A4 portrait;
-      margin: 7mm 8mm;
+      margin: 6mm 7mm;
     }
 
     @media print {
       html, body {
-        background: #fff;
+        background: #ffffff;
         margin: 0;
         padding: 0;
       }
@@ -361,40 +309,46 @@
       }
 
       h1 {
-        font-size: 13px;
+        font-size: 12px;
+        margin: 0 0 4px;
+      }
+
+      .header-form {
+        padding: 4px 8px;
         margin-bottom: 6px;
-      }
-
-      .header {
-        padding: 6px 8px;
-        margin-bottom: 8px;
         gap: 8px;
+        border: 1px solid #cbd5e1;
       }
 
-      .header .field label {
-        font-size: 8px;
+      .header-form .field label {
+        font-size: 7.5px;
       }
 
-      .header input {
+      .header-form input,
+      .header-form select {
         height: 18px;
-        font-size: 10px;
-        padding: 0 5px;
+        font-size: 9px;
+        padding: 0 4px;
       }
 
-      .table-scroll { overflow: visible; border-radius: 0; }
+      .table-scroll {
+        overflow: visible;
+        border-radius: 0;
+        margin-bottom: 0;
+      }
 
       table {
-        font-size: 8px;
+        font-size: 7.5px;
         border-radius: 0;
-        min-width: unset;
+        min-width: unset !important;
         page-break-inside: avoid;
       }
 
-      th {
-        font-size: 7.5px;
-        height: auto;
-        padding: 3px 3px;
-        background: #f8fafc !important;
+      thead th {
+        font-size: 7px;
+        height: 16px;
+        padding: 1px;
+        background: #f1f5f9 !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
         position: static;
@@ -402,30 +356,27 @@
       }
 
       td {
-        padding: 2.5px 3px;
+        padding: 1.5px 1px;
+        height: 15px;
       }
 
-      input, select {
-        font-size: 8px;
-        min-height: unset;
-        padding: 1px 2px;
+      table input, table select {
+        font-size: 7.5px;
+        padding: 0;
+        height: 14px;
       }
 
       tfoot td {
-        padding: 4px 6px;
+        padding: 3px 4px;
+        font-size: 8px;
+      }
+
+      #totalMois, #heuresSup, #fraisKm {
         font-size: 9px;
       }
 
-      #totalMois, #heuresSup {
-        font-size: 10px;
-      }
-
-      input.chk-weekend {
-        width: 11px;
-        height: 11px;
-      }
-
       .no-print,
+      .col-actions,
       .col-weekend {
         display: none !important;
       }
@@ -441,17 +392,21 @@
 
 <body>
   <div class="sheet">
-    <h1><span style="font-weight: 300; color: var(--muted)">FEUILLE DE PRESTATIONS</span><br>Heures Mensuelles</h1>
+    <h1><span style="font-weight: 300; color: var(--text-muted)">Feuille de Prestations</span><br>Heures Mensuelles</h1>
 
-    <div class="header">
-      <div class="field"><label for="nom">NOM:</label><input id="nom" type="text" placeholder="Entrez le nom" /></div>
-      <div class="field"><label for="prenom">PRENOM:</label><input id="prenom" type="text"
-          placeholder="Entrez le prénom" /></div>
+    <div class="header-form">
       <div class="field">
-        <label for="periode">PÉRIODE:</label>
-        <div style="display: flex; gap: 4px;">
-          <select id="selectMois"
-            style="text-align: left; height: 32px; border: 1px solid #e2e8f0; padding: 0 5px; border-radius: 6px; background: white;">
+        <label for="nom">Nom :</label>
+        <input id="nom" type="text" placeholder="Nom de famille" />
+      </div>
+      <div class="field">
+        <label for="prenom">Prénom :</label>
+        <input id="prenom" type="text" placeholder="Prénom" />
+      </div>
+      <div class="field">
+        <label for="selectMois">Période :</label>
+        <div style="display: flex; gap: 6px;">
+          <select id="selectMois">
             <option value="0">Janvier</option>
             <option value="1">Février</option>
             <option value="2">Mars</option>
@@ -465,250 +420,268 @@
             <option value="10">Novembre</option>
             <option value="11">Décembre</option>
           </select>
-          <input id="annee" type="number" value="2026"
-            style="width: 70px; text-align: left; height: 32px; border: 1px solid #e2e8f0; padding: 0 5px; border-radius: 6px;" />
+          <input id="annee" type="number" value="2026" min="2000" max="2099" style="width: 75px; text-align: center;" />
         </div>
       </div>
     </div>
 
     <div class="table-scroll">
-    <table id="heures">
-      <thead>
-        <tr>
-          <th>Jour</th>
-          <th class="col-weekend">W</th>
-          <th>N° chantier</th>
-          <th>Localité</th>
-          <th>Kms</th>
-          <th>Plaque</th>
-          <th>Début</th>
-          <th>Fin</th>
-          <th>Aent</th>
-          <th>Total</th>
-          <th>Chauffeur</th>
-          <th class="no-print" style="width: 35px;"></th>
-        </tr>
-      </thead>
-      <tbody>
-        <script>
-          for (let j = 1; j <= 31; j++) {
-            document.write(`
-            <tr id="row_${j}">
-              <td>${j}</td>
-              <td class="col-weekend"><input type="checkbox" class="chk-weekend" onchange="toggleWeekend(this)"></td>
-              <td><input name="chantier_${j}" list="chantiers-list" placeholder="..." /></td>
-              <td><input name="localite_${j}" placeholder="..." /></td>
-              <td><input name="kms_${j}" type="number" step="0.1" inputmode="decimal" /></td>
-              <td>
-                <select name="plaque_${j}" class="plaque-select" onchange="gererAutrePlaque(this)">
-                  <option value="">Sélectionner</option>
-                  <option value="autre">Autre…</option>
-                </select>
-                <input type="text" name="plaque_autre_${j}" class="plaque-autre" placeholder="Plaque" maxlength="9" />
-              </td>
-              <td><input name="debut_${j}" type="time" /></td>
-              <td><input name="fin_${j}" type="time" /></td>
-              <td><input name="aent_${j}" type="time" step="60" /></td>
-              <td><input name="total_${j}" class="total" readonly /></td>
-              <td><input name="chauffeur_${j}" class="chauffeur-input" /></td>
-              <td class="no-print">${j > 1 ? `<button type="button" onclick="copyPrevious(${j})" style="padding: 4px 8px; font-size: 10px; background: #f1f5f9; color: #64748b;" title="Copier la ligne précédente">▼</button>` : ''}</td>
-            </tr>
-          `);
-          }
-        </script>
-      </tbody>
-      <tfoot>
-        <tr>
-          <td colspan="9" style="text-align:right;">Total mensuel (heures):</td>
-          <td><input id="totalMois" readonly /></td>
-        </tr>
-        <tr>
-          <td colspan="9" style="text-align:right;">Heures supplémentaires:</td>
-          <td><input id="heuresSup" readonly /></td>
-        </tr>
-        <tr id="fraisKmRow" style="display:none">
-          <td colspan="9" style="text-align:right;">Frais kilométriques:</td>
-          <td><input id="fraisKm" readonly /></td>
-        </tr>
-      </tfoot>
-
-    </table>
-    </div><!-- /.table-scroll -->
-
-    <div class="actions no-print">
-      <button type="button" onclick="resetForm()" class="secondary" style="margin-right: auto; color: #ef4444;">🗑️
-        Vider</button>
-      <button type="button" onclick="envoyerEmail()" style="background: #e11d48;">✉️ Envoyer à Isabelle</button>
-      <button type="button" onclick="ouvrirResume()" style="background: #10b981;">📊 Résumé</button>
-      <button type="button" onclick="exportCSV()" class="secondary">📈 Excel</button>
-      <button type="button" onclick="window.print()" class="secondary">🖨️ PDF</button>
-      <button type="button" onclick="telecharger()">💾 Sauvegarder</button>
-      <input type="file" id="importFile" accept=".json" style="display: none" onchange="importer(event)" />
-      <button type="button" onclick="document.getElementById('importFile').click()" class="secondary">📂
-        Charger</button>
-      <button type="button" onclick="window.open('historique.html','_blank')" class="secondary">📋 Historique</button>
-      <button type="button" onclick="window.open('import_photo.html','_blank')" class="secondary">📷 Import photo</button>
-      <button type="button" onclick="window.open('config.html','_blank')" class="secondary">⚙️ Config</button>
+      <table id="heures">
+        <thead>
+          <tr>
+            <th class="col-jour">Jour</th>
+            <th class="col-weekend">W-E</th>
+            <th class="col-chantier">N° Chantier</th>
+            <th class="col-localite">Localité</th>
+            <th class="col-kms">Kms</th>
+            <th class="col-plaque">Plaque</th>
+            <th class="col-heure">Début</th>
+            <th class="col-heure">Fin</th>
+            <th class="col-heure" title="Trajet / Déplacement">A/Ent</th>
+            <th class="col-total">Total</th>
+            <th class="col-chauffeur">Chauffeur</th>
+            <th class="col-actions no-print"></th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <!-- Lignes générées dynamiquement en JS (jours 1 à 31) -->
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="9" style="text-align:right;">Total mensuel travaillé (heures) :</td>
+            <td><input id="totalMois" readonly /></td>
+            <td colspan="2" class="no-print"></td>
+          </tr>
+          <tr>
+            <td colspan="9" style="text-align:right;">Heures supplémentaires :</td>
+            <td><input id="heuresSup" readonly /></td>
+            <td colspan="2" class="no-print"></td>
+          </tr>
+          <tr id="fraisKmRow" style="display:none">
+            <td colspan="9" style="text-align:right;">Frais kilométriques calculés :</td>
+            <td><input id="fraisKm" readonly /></td>
+            <td colspan="2" class="no-print"></td>
+          </tr>
+        </tfoot>
+      </table>
     </div>
-    <p class="no-print" style="text-align:right; font-size:10px; color:var(--muted); margin:6px 0 0;">
-      ⌨️ <strong>Ctrl+S</strong> sauvegarder &nbsp;·&nbsp; <strong>Alt+←/→</strong> changer de mois
+
+    <div class="actions-bar no-print">
+      <button type="button" onclick="resetForm()" class="btn danger" style="margin-right: auto;">🗑️ Vider</button>
+      <button type="button" onclick="envoyerEmail()" class="btn primary" id="btnEmail" style="background:#e11d48;">✉️ Envoyer par Email</button>
+      <button type="button" onclick="ouvrirResume()" class="btn success">📊 Résumé</button>
+      <button type="button" onclick="exportCSV()" class="btn secondary">📈 Excel / CSV</button>
+      <button type="button" onclick="window.print()" class="btn secondary">🖨️ PDF</button>
+      <button type="button" onclick="telechargerJSON()" class="btn primary">💾 Sauvegarder</button>
+      <input type="file" id="importFile" accept=".json" style="display: none" onchange="importerJSON(event)" />
+      <button type="button" onclick="document.getElementById('importFile').click()" class="btn secondary">📂 Charger</button>
+    </div>
+
+    <p class="shortcuts-hint no-print">
+      ⌨️ <strong>Ctrl+S</strong> Sauvegarder &nbsp;·&nbsp; <strong>Alt+←/→</strong> Changer de mois &nbsp;·&nbsp; <strong>▼</strong> Dupliquer la ligne précédente
     </p>
+
     <datalist id="chantiers-list"></datalist>
   </div>
 
+  <script src="shared.js"></script>
   <script>
-    function ouvrirResume() {
-      localStorage.setItem("heures_resume_key", _activeKey || getStorageKey());
-      window.open('resume.html', '_blank');
-    }
-
-    /* ===== Configuration ===== */
-    const DEFAULT_CONFIG = {
-      plaques: [],
-      chantiers: [],
-      email_destinataire: "deutsch.isabelle@eecocur.be",
-      heures_normales_par_jour: 8,
-      tarif_km_chauffeur: 0,
-      tarif_km_accompagnateur: 0,
-      nom_entreprise: ""
-    };
     let _config = { ...DEFAULT_CONFIG };
+    let _activeKey = null;
 
-    async function chargerConfig() {
-      try {
-        const stored = localStorage.getItem("heures_config");
-        if (stored) {
-          _config = { ...DEFAULT_CONFIG, ...JSON.parse(stored) };
-        } else {
-          const response = await fetch('config.json');
-          if (response.ok) _config = { ...DEFAULT_CONFIG, ...await response.json() };
+    /* ===== Initialisation du tableau (31 jours) ===== */
+    function buildTableRows() {
+      const tbody = document.getElementById("tableBody");
+      let html = "";
+      for (let j = 1; j <= 31; j++) {
+        html += `
+          <tr id="row_${j}">
+            <td class="col-jour">${j}</td>
+            <td class="col-weekend">
+              <input type="checkbox" class="chk-weekend" data-day="${j}" onchange="onManualWeekendToggle(this)">
+            </td>
+            <td><input name="chantier_${j}" list="chantiers-list" placeholder="..." autocomplete="off" /></td>
+            <td><input name="localite_${j}" placeholder="..." autocomplete="off" /></td>
+            <td><input name="kms_${j}" type="number" step="0.1" min="0" inputmode="decimal" placeholder="0" /></td>
+            <td>
+              <select name="plaque_${j}" class="plaque-select" onchange="gererAutrePlaque(this)">
+                <option value="">Sélectionner</option>
+                <option value="autre">Autre…</option>
+              </select>
+              <input type="text" name="plaque_autre_${j}" class="plaque-autre" placeholder="Plaque" maxlength="12" />
+            </td>
+            <td><input name="debut_${j}" type="time" /></td>
+            <td><input name="fin_${j}" type="time" /></td>
+            <td><input name="aent_${j}" type="time" step="60" title="Temps de trajet / déplacement" /></td>
+            <td><input name="total_${j}" class="total" readonly /></td>
+            <td><input name="chauffeur_${j}" class="chauffeur-input" placeholder="Chauffeur" /></td>
+            <td class="col-actions no-print">
+              ${j > 1 ? `<button type="button" class="btn secondary sm" onclick="copyPrevious(${j})" title="Copier la ligne ${j - 1}" style="padding: 2px 5px; font-size: 9px; line-height: 1;">▼</button>` : ''}
+            </td>
+          </tr>
+        `;
+      }
+      tbody.innerHTML = html;
+    }
+
+    /* ===== Remplissage des plaques dans les listes déroulantes ===== */
+    function populatePlaques() {
+      const plaques = _config.plaques || [];
+      document.querySelectorAll('.plaque-select').forEach(select => {
+        const curVal = select.value;
+        select.innerHTML = '<option value="">Sélectionner</option>';
+        plaques.forEach(p => select.add(new Option(p, p)));
+        select.add(new Option("Autre…", "autre"));
+
+        if (curVal && curVal !== "autre") {
+          ensureOptionExists(select, curVal);
+          select.value = curVal;
         }
-      } catch (e) {
-        console.warn("Config non trouvée.");
-      }
+      });
+    }
 
-      if (_config.plaques && _config.plaques.length) {
-        document.querySelectorAll('.plaque-select').forEach(select => {
-          const currentVal = select.value;
-          select.innerHTML = "";
-          select.add(new Option("Sélectionner", ""));
-          _config.plaques.forEach(p => select.add(new Option(p, p)));
-          select.add(new Option("Autre…", "autre"));
-          select.value = currentVal;
-        });
-      }
-
-      const datalist = document.getElementById("chantiers-list");
-      if (datalist && _config.chantiers && _config.chantiers.length) {
-        datalist.innerHTML = _config.chantiers.map(c =>
-          `<option value="${c.replace(/"/g, '&quot;')}"></option>`
-        ).join("");
+    function ensureOptionExists(selectEl, val) {
+      if (!val || val === "autre") return;
+      const exists = Array.from(selectEl.options).some(o => o.value === val);
+      if (!exists) {
+        const autreOpt = Array.from(selectEl.options).find(o => o.value === "autre");
+        const newOpt = new Option(val, val);
+        if (autreOpt) {
+          selectEl.insertBefore(newOpt, autreOpt);
+        } else {
+          selectEl.add(newOpt);
+        }
       }
     }
 
-    /* ===== Utilitaires temps ===== */
-    function parseHHMM(str) {
-      if (!str) return 0;
-      const m = str.trim().match(/^(\d{1,2}):([0-5]\d)(?::([0-5]\d))?$/);
-      if (!m) return 0;
-      return +m[1] * 3600 + +m[2] * 60 + (m[3] ? +m[3] : 0);
-    }
-    function toHHMM(sec) {
-      const neg = sec < 0;
-      let s = Math.abs(Math.round(sec));
-      const h = Math.floor(s / 3600);
-      const mn = Math.floor((s % 3600) / 60);
-      return (neg ? "-" : "") + String(h).padStart(2, "0") + ":" + String(mn).padStart(2, "0");
-    }
-
-    /* ===== Weekend ===== */
-    function toggleWeekend(checkbox) {
-      const row = checkbox.closest("tr");
-      const inputs = row.querySelectorAll("input, select");
-      if (checkbox.checked) {
-        row.classList.add("weekend");
-        inputs.forEach(el => {
-          if (el === checkbox) return;
-          if (el.type === "checkbox") el.checked = false;
-          else el.value = "";
-          el.disabled = true;
-        });
-      } else {
-        row.classList.remove("weekend");
-        inputs.forEach(el => { if (el !== checkbox) el.disabled = false; });
-      }
-    }
-
-    /* ===== Plaques ===== */
-    function ensureAutreOption(selectEl) {
-      if (!Array.from(selectEl.options).some(o => o.value === "autre")) {
-        selectEl.appendChild(Object.assign(document.createElement("option"), { value: "autre", textContent: "Autre…" }));
-      }
-    }
     function gererAutrePlaque(selectEl) {
-      const autreInput = selectEl.closest("td").querySelector(".plaque-autre");
+      const row = selectEl.closest("tr");
+      const autreInput = row.querySelector(".plaque-autre");
       if (!autreInput) return;
+
       if (selectEl.value === "autre") {
         autreInput.style.display = "block";
         autreInput.value = "";
         autreInput.focus();
+
         autreInput.onblur = () => {
-          const val = autreInput.value.trim();
+          const val = autreInput.value.trim().toUpperCase();
           if (val) {
-            const newOpt = new Option(val, val);
-            const autreOpt = Array.from(selectEl.options).find(o => o.value === "autre");
-            if (autreOpt) selectEl.replaceChild(newOpt, autreOpt);
-            else selectEl.appendChild(newOpt);
+            ensureOptionExists(selectEl, val);
             selectEl.value = val;
-            ensureAutreOption(selectEl);
           } else {
             selectEl.value = "";
           }
           autreInput.style.display = "none";
+          recalc();
+          autoSave();
+        };
+
+        autreInput.onkeydown = (e) => {
+          if (e.key === "Enter") {
+            autreInput.blur();
+          }
         };
       } else {
         autreInput.style.display = "none";
       }
     }
 
-    /* ===== Calculs ===== */
+    /* ===== Gestion intelligente des week-ends ===== */
+    function onManualWeekendToggle(checkbox) {
+      checkbox.dataset.manual = "true";
+      const row = checkbox.closest("tr");
+      if (checkbox.checked) {
+        row.classList.add("weekend");
+        const debut = row.querySelector('input[name^="debut_"]').value;
+        const fin = row.querySelector('input[name^="fin_"]').value;
+        if (!debut && !fin) {
+          row.classList.remove("has-hours");
+        }
+      } else {
+        row.classList.remove("weekend");
+        row.classList.remove("has-hours");
+      }
+      recalc();
+      autoSave();
+    }
+
+    function applyWeekendStyle(row, isWeekend, hasHours) {
+      if (isWeekend) {
+        row.classList.add("weekend");
+        if (hasHours) {
+          row.classList.add("has-hours");
+        } else {
+          row.classList.remove("has-hours");
+        }
+      } else {
+        row.classList.remove("weekend");
+        row.classList.remove("has-hours");
+      }
+    }
+
+    /* ===== Calculs des heures et frais ===== */
     function recalc() {
       let sum = 0, joursTravailles = 0;
       let fraisChauffeur = 0, fraisAccompagnateur = 0;
-      const nomOuvrier = (document.getElementById("nom")?.value || "").trim().toLowerCase();
+      const nom = (document.getElementById("nom")?.value || "").trim();
+      const prenom = (document.getElementById("prenom")?.value || "").trim();
 
       document.querySelectorAll("#heures tbody tr").forEach(tr => {
-        const debut   = tr.querySelector('input[name^="debut_"]')?.value    || "";
-        const fin     = tr.querySelector('input[name^="fin_"]')?.value      || "";
-        const aent    = tr.querySelector('input[name^="aent_"]')?.value     || "";
-        const totalEl = tr.querySelector('input[name^="total_"]');
-        const kms     = parseFloat(tr.querySelector('input[name^="kms_"]')?.value || 0) || 0;
-        const chauff  = (tr.querySelector('input[name^="chauffeur_"]')?.value || "").trim().toLowerCase();
+        if (tr.style.display === "none") return;
 
-        let day = 0;
+        const j = tr.id.replace("row_", "");
+        const debut = tr.querySelector(`input[name="debut_${j}"]`)?.value || "";
+        const fin = tr.querySelector(`input[name="fin_${j}"]`)?.value || "";
+        const aent = tr.querySelector(`input[name="aent_${j}"]`)?.value || "";
+        const totalEl = tr.querySelector(`input[name="total_${j}"]`);
+        const kms = parseFloat(tr.querySelector(`input[name="kms_${j}"]`)?.value || 0) || 0;
+        const chauff = (tr.querySelector(`input[name="chauffeur_${j}"]`)?.value || "").trim();
+        const chkWeekend = tr.querySelector(".chk-weekend");
+
+        let daySec = 0;
         if (debut && fin) {
           let diff = parseHHMM(fin) - parseHHMM(debut);
-          if (diff < 0) diff += 86400;
-          day = Math.max(0, diff + parseHHMM(aent) - 1800);
+          if (diff < 0) diff += 86400; // Passage de minuit
+          // Déduction de 30 min (1800s) de pause réglementaire
+          daySec = Math.max(0, diff + parseHHMM(aent) - 1800);
         }
-        if (totalEl) totalEl.value = day ? toHHMM(day) : "";
-        if (day > 0) joursTravailles++;
-        sum += day;
 
+        if (totalEl) totalEl.value = daySec > 0 ? toHHMM(daySec) : "";
+        if (daySec > 0) joursTravailles++;
+        sum += daySec;
+
+        // Frais kilométriques
         if (kms > 0) {
-          const estChauffeur = !chauff || chauff === nomOuvrier;
-          if (estChauffeur) fraisChauffeur     += kms * (_config.tarif_km_chauffeur     || 0);
-          else              fraisAccompagnateur += kms * (_config.tarif_km_accompagnateur || 0);
+          const estChauff = isChauffeur(chauff, nom, prenom);
+          if (estChauff) {
+            fraisChauffeur += kms * (_config.tarif_km_chauffeur || 0);
+          } else {
+            fraisAccompagnateur += kms * (_config.tarif_km_accompagnateur || 0);
+          }
+        }
+
+        // Ajuster l'apparence si heures sur week-end
+        if (chkWeekend && chkWeekend.checked) {
+          if (daySec > 0 || kms > 0) {
+            tr.classList.add("has-hours");
+          } else {
+            tr.classList.remove("has-hours");
+          }
         }
       });
 
+      // Total mensuel
       const totalMoisEl = document.getElementById("totalMois");
-      if (totalMoisEl) totalMoisEl.value = sum ? toHHMM(sum) : "";
+      if (totalMoisEl) totalMoisEl.value = sum > 0 ? toHHMM(sum) : "00:00";
 
-      const sup = Math.max(0, sum - joursTravailles * (_config.heures_normales_par_jour * 3600));
+      // Heures supplémentaires (> seuil journalier)
+      const seuilNormalSec = (_config.heures_normales_par_jour || 8) * 3600;
+      const supSec = Math.max(0, sum - joursTravailles * seuilNormalSec);
       const heuresSupEl = document.getElementById("heuresSup");
-      if (heuresSupEl) heuresSupEl.value = toHHMM(sup);
+      if (heuresSupEl) heuresSupEl.value = supSec > 0 ? toHHMM(supSec) : "00:00";
 
+      // Total frais KM
       const totalFrais = fraisChauffeur + fraisAccompagnateur;
       const fraisEl = document.getElementById("fraisKm");
       const fraisRowEl = document.getElementById("fraisKmRow");
@@ -719,15 +692,37 @@
       }
     }
 
-    /* ===== LocalStorage multi-mois ===== */
-    let _activeKey = null;
+    /* ===== Structure des dates du mois sélectionné ===== */
+    function updateDateStructure() {
+      const mois = parseInt(document.getElementById("selectMois").value);
+      const annee = parseInt(document.getElementById("annee").value);
+      const daysInMonth = new Date(annee, mois + 1, 0).getDate();
 
-    function getStorageKey() {
-      const mois  = document.getElementById("selectMois").value;
-      const annee = document.getElementById("annee").value || String(new Date().getFullYear());
-      return `heures_v2_${mois}_${annee}`;
+      document.querySelectorAll("#heures tbody tr").forEach((row, index) => {
+        const day = index + 1;
+        if (day > daysInMonth) {
+          row.style.display = "none";
+        } else {
+          row.style.display = "table-row";
+          const dayOfWeek = new Date(annee, mois, day).getDay();
+          const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+          const chk = row.querySelector(".chk-weekend");
+
+          if (chk && !chk.dataset.manual) {
+            chk.checked = isWeekend;
+          }
+
+          const debut = row.querySelector(`input[name="debut_${day}"]`)?.value || "";
+          const fin = row.querySelector(`input[name="fin_${day}"]`)?.value || "";
+          const hasHours = (debut && fin);
+
+          applyWeekendStyle(row, chk ? chk.checked : isWeekend, hasHours);
+        }
+      });
+      recalc();
     }
 
+    /* ===== Collecte et Restauration des données ===== */
     function collectFormData() {
       const data = {};
       document.querySelectorAll("input, select").forEach(el => {
@@ -739,181 +734,228 @@
     }
 
     function restoreFormData(data) {
+      if (!data) return;
+
+      // 1. Rétablir d'abord nom, prénom, période
+      if (data.nom !== undefined) document.getElementById("nom").value = data.nom;
+      if (data.prenom !== undefined) document.getElementById("prenom").value = data.prenom;
+      if (data.selectMois !== undefined) document.getElementById("selectMois").value = data.selectMois;
+      if (data.annee !== undefined) document.getElementById("annee").value = data.annee;
+
+      // 2. Rétablir tous les champs de chaque jour
       Object.entries(data).forEach(([key, val]) => {
+        if (["nom", "prenom", "selectMois", "annee"].includes(key)) return;
         const el = document.querySelector(`[name="${CSS.escape(key)}"], #${CSS.escape(key)}`);
         if (!el) return;
-        if (el.type === "checkbox") el.checked = !!val;
-        else el.value = val;
+
+        if (el.tagName === "SELECT" && key.startsWith("plaque_")) {
+          if (val && val !== "autre") {
+            ensureOptionExists(el, val);
+          }
+          el.value = val;
+        } else if (el.type === "checkbox") {
+          el.checked = !!val;
+          el.dataset.manual = "true";
+        } else {
+          el.value = val;
+        }
       });
-      document.querySelectorAll(".chk-weekend").forEach(chk => toggleWeekend(chk));
-      document.querySelectorAll('select[name^="plaque_"]').forEach(sel => ensureAutreOption(sel));
-      recalc();
+
+      updateDateStructure();
     }
 
     function clearDailyData() {
       document.querySelectorAll("#heures tbody tr").forEach(tr => {
-        tr.classList.remove("weekend");
+        tr.classList.remove("weekend", "has-hours");
         tr.querySelectorAll("input").forEach(el => {
-          if (el.type === "checkbox") { el.checked = false; el.disabled = false; }
-          else if (!el.readOnly) { el.value = ""; el.disabled = false; }
+          if (el.type === "checkbox") {
+            el.checked = false;
+            delete el.dataset.manual;
+          } else if (!el.readOnly) {
+            el.value = "";
+          }
         });
-        tr.querySelectorAll("select").forEach(el => { el.value = ""; el.disabled = false; });
-        tr.querySelectorAll(".plaque-autre").forEach(el => el.style.display = "none");
+        tr.querySelectorAll("select").forEach(el => { el.value = ""; });
+        tr.querySelectorAll(".plaque-autre").forEach(el => { el.style.display = "none"; });
       });
     }
 
     function autoSave() {
-      if (_activeKey) localStorage.setItem(_activeKey, JSON.stringify(collectFormData()));
+      if (_activeKey) {
+        localStorage.setItem(_activeKey, JSON.stringify(collectFormData()));
+      }
     }
 
     function switchMonth() {
-      if (_activeKey) localStorage.setItem(_activeKey, JSON.stringify(collectFormData()));
-      _activeKey = getStorageKey();
-      const nom    = document.getElementById("nom").value;
+      if (_activeKey) {
+        localStorage.setItem(_activeKey, JSON.stringify(collectFormData()));
+      }
+      _activeKey = getStorageKey(
+        document.getElementById("selectMois").value,
+        document.getElementById("annee").value
+      );
+
+      const nom = document.getElementById("nom").value;
       const prenom = document.getElementById("prenom").value;
+
       clearDailyData();
       const saved = localStorage.getItem(_activeKey);
       if (saved) {
-        try { restoreFormData(JSON.parse(saved)); } catch {}
+        try {
+          restoreFormData(JSON.parse(saved));
+        } catch (e) {
+          console.error("Erreur de restauration", e);
+        }
       } else {
-        document.getElementById("nom").value    = nom;
+        document.getElementById("nom").value = nom;
         document.getElementById("prenom").value = prenom;
+        updateDateStructure();
       }
-      updateDateStructure();
     }
 
-    /* ===== Sauvegarde / Chargement JSON ===== */
-    function telecharger() {
-      const nom    = (document.getElementById("nom")?.value    || "nom").trim();
+    /* ===== Actions & Boutons ===== */
+    function ouvrirResume() {
+      autoSave();
+      localStorage.setItem("heures_resume_key", _activeKey || getStorageKey(
+        document.getElementById("selectMois").value,
+        document.getElementById("annee").value
+      ));
+      window.location.href = "resume.html";
+    }
+
+    function telechargerJSON() {
+      autoSave();
+      const nom = (document.getElementById("nom")?.value || "nom").trim();
       const prenom = (document.getElementById("prenom")?.value || "prenom").trim();
-      const mois   = document.getElementById("selectMois").selectedOptions[0].text;
-      const annee  = document.getElementById("annee").value || "";
-      const filename = `heures_mensuelles_${nom}_${prenom}_${mois}_${annee}.json`.replace(/\s+/g, "_");
+      const mois = document.getElementById("selectMois").selectedOptions[0].text;
+      const annee = document.getElementById("annee").value || "";
+      const filename = `heures_${nom}_${prenom}_${mois}_${annee}.json`.replace(/\s+/g, "_");
+
       const blob = new Blob([JSON.stringify(collectFormData(), null, 2)], { type: "application/json" });
-      const url  = URL.createObjectURL(blob);
+      const url = URL.createObjectURL(blob);
       const a = Object.assign(document.createElement("a"), { href: url, download: filename });
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      showToast("Fichier JSON téléchargé !", "success");
     }
 
-    function importer(event) {
+    function importerJSON(event) {
       const file = event.target.files?.[0];
       if (!file) return;
+
       const reader = new FileReader();
       reader.onload = () => {
         try {
           const data = JSON.parse(reader.result);
           if (data.selectMois !== undefined) document.getElementById("selectMois").value = data.selectMois;
-          if (data.annee      !== undefined) document.getElementById("annee").value      = data.annee;
-          _activeKey = getStorageKey();
+          if (data.annee !== undefined) document.getElementById("annee").value = data.annee;
+
+          _activeKey = getStorageKey(
+            document.getElementById("selectMois").value,
+            document.getElementById("annee").value
+          );
+
           restoreFormData(data);
-          updateDateStructure();
           autoSave();
-          alert("Données chargées avec succès !");
-        } catch {
-          alert("Fichier invalide. Veuillez sélectionner un JSON exporté par ce formulaire.");
+          showToast("Données importées avec succès !", "success");
+        } catch (e) {
+          showToast("Fichier invalide ou corrompu.", "error");
         }
         event.target.value = "";
       };
       reader.readAsText(file, "utf-8");
     }
 
-    /* ===== Dates ===== */
-    function updateDateStructure() {
-      const mois  = parseInt(document.getElementById("selectMois").value);
-      const annee = parseInt(document.getElementById("annee").value);
-      const daysInMonth = new Date(annee, mois + 1, 0).getDate();
-      document.querySelectorAll("#heures tbody tr").forEach((row, index) => {
-        const day = index + 1;
-        if (day > daysInMonth) {
-          row.style.display = "none";
-        } else {
-          row.style.display = "table-row";
-          const isWeekend = [0, 6].includes(new Date(annee, mois, day).getDay());
-          const chk = row.querySelector(".chk-weekend");
-          if (chk && !chk.dataset.manual) {
-            chk.checked = isWeekend;
-            toggleWeekend(chk);
-          }
-        }
-      });
-      recalc();
-    }
-
     function resetForm() {
-      if (confirm("Voulez-vous vraiment vider tout le tableau ?")) {
+      if (confirm("Voulez-vous vraiment vider toutes les saisies du mois en cours ?")) {
         if (_activeKey) localStorage.removeItem(_activeKey);
-        location.reload();
+        clearDailyData();
+        updateDateStructure();
+        showToast("Tableau réinitialisé", "info");
       }
     }
 
-    /* ===== Export CSV ===== */
     function exportCSV() {
-      let csv = "Jour;Chantier;Localite;Kms;Plaque;Debut;Fin;Aent;Total;Chauffeur\n";
+      const nom = document.getElementById("nom").value || "Ouvrier";
+      const prenom = document.getElementById("prenom").value || "";
+      const mois = document.getElementById("selectMois").selectedOptions[0].text;
+      const annee = document.getElementById("annee").value;
+
+      let csv = "Jour;N° Chantier;Localite;Kms;Plaque;Debut;Fin;A/Ent;Total;Chauffeur\n";
       document.querySelectorAll("#heures tbody tr").forEach((tr, i) => {
         if (tr.style.display === "none") return;
         const j = i + 1;
-        csv += [
+        const row = [
           j,
-          tr.querySelector(`[name="chantier_${j}"]`)?.value || "",
-          tr.querySelector(`[name="localite_${j}"]`)?.value || "",
-          tr.querySelector(`[name="kms_${j}"]`)?.value      || "",
+          `"${(tr.querySelector(`[name="chantier_${j}"]`)?.value || "").replace(/"/g, '""')}"`,
+          `"${(tr.querySelector(`[name="localite_${j}"]`)?.value || "").replace(/"/g, '""')}"`,
+          tr.querySelector(`[name="kms_${j}"]`)?.value || "",
           tr.querySelector(`select[name="plaque_${j}"]`)?.value || "",
-          tr.querySelector(`[name="debut_${j}"]`)?.value    || "",
-          tr.querySelector(`[name="fin_${j}"]`)?.value      || "",
-          tr.querySelector(`[name="aent_${j}"]`)?.value     || "",
-          tr.querySelector(`[name="total_${j}"]`)?.value    || "",
-          tr.querySelector(`[name="chauffeur_${j}"]`)?.value || ""
-        ].join(";") + "\n";
+          tr.querySelector(`[name="debut_${j}"]`)?.value || "",
+          tr.querySelector(`[name="fin_${j}"]`)?.value || "",
+          tr.querySelector(`[name="aent_${j}"]`)?.value || "",
+          tr.querySelector(`[name="total_${j}"]`)?.value || "",
+          `"${(tr.querySelector(`[name="chauffeur_${j}"]`)?.value || "").replace(/"/g, '""')}"`
+        ];
+        csv += row.join(";") + "\n";
       });
+
       const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
       const link = Object.assign(document.createElement("a"), {
         href: URL.createObjectURL(blob),
-        download: `heures_${document.getElementById("nom").value}_${document.getElementById("selectMois").selectedOptions[0].text}.csv`
+        download: `heures_${nom}_${prenom}_${mois}_${annee}.csv`.replace(/\s+/g, "_")
       });
       link.click();
+      showToast("Fichier CSV exporté !", "success");
     }
 
-    /* ===== Email ===== */
     function envoyerEmail() {
-      const nom    = document.getElementById("nom").value    || "[NOM]";
+      const nom = document.getElementById("nom").value || "[NOM]";
       const prenom = document.getElementById("prenom").value || "[PRENOM]";
-      const mois   = document.getElementById("selectMois").selectedOptions[0].text;
-      const annee  = document.getElementById("annee").value;
-      const total  = document.getElementById("totalMois").value;
-      const sup    = document.getElementById("heuresSup").value;
-      const frais  = document.getElementById("fraisKm")?.value || "";
+      const mois = document.getElementById("selectMois").selectedOptions[0].text;
+      const annee = document.getElementById("annee").value;
+      const total = document.getElementById("totalMois").value || "00:00";
+      const sup = document.getElementById("heuresSup").value || "00:00";
+      const frais = document.getElementById("fraisKm")?.value || "";
       const tarifActif = (_config.tarif_km_chauffeur || 0) + (_config.tarif_km_accompagnateur || 0) > 0;
 
-      let corps = `Bonjour,\n\nVoici le résumé de mes heures pour ${mois} ${annee} :\n\n`;
+      let corps = `Bonjour,\n\nVoici le résumé de mes heures de travail pour ${mois} ${annee} :\n\n`;
       corps += `Nom : ${nom}\nPrénom : ${prenom}\n`;
+      if (_config.nom_entreprise) corps += `Entreprise : ${_config.nom_entreprise}\n`;
       corps += `----------------------------------\n`;
       corps += `TOTAL MENSUEL   : ${total}\n`;
       corps += `Heures sup.     : ${sup}\n`;
       if (tarifActif && frais) corps += `Frais km        : ${frais}\n`;
       corps += `----------------------------------\n\n`;
-      corps += `(Note : Pensez à joindre le fichier de sauvegarde JSON ou CSV si nécessaire.)\n`;
-      corps += `\nCordialement,\n${prenom} ${nom}`;
+      corps += `(Pensez à joindre le fichier PDF ou JSON de la feuille d'heures)\n\n`;
+      corps += `Cordialement,\n${prenom} ${nom}`;
 
       const dest = _config.email_destinataire || "deutsch.isabelle@eecocur.be";
       const objet = encodeURIComponent(`Heures Mensuelles - ${nom} ${prenom} - ${mois} ${annee}`);
       window.location.href = `mailto:${dest}?subject=${objet}&body=${encodeURIComponent(corps)}`;
     }
 
-    /* ===== Copie ligne précédente ===== */
     function copyPrevious(j) {
+      if (j <= 1) return;
       ['chantier', 'localite', 'kms', 'plaque', 'chauffeur'].forEach(f => {
-        const val = document.querySelector(`[name="${f}_${j - 1}"]`)?.value || "";
-        const el  = document.querySelector(`[name="${f}_${j}"]`);
+        const prevVal = document.querySelector(`[name="${f}_${j - 1}"]`)?.value || "";
+        const el = document.querySelector(`[name="${f}_${j}"]`);
         if (el) {
-          el.value = val;
-          if (f === 'plaque' && el.classList.contains('plaque-select')) gererAutrePlaque(el);
+          if (f === 'plaque' && el.classList.contains('plaque-select')) {
+            if (prevVal && prevVal !== "autre") {
+              ensureOptionExists(el, prevVal);
+            }
+            el.value = prevVal;
+          } else {
+            el.value = prevVal;
+          }
         }
       });
       recalc();
       autoSave();
+      showToast(`Ligne ${j - 1} copiée vers jour ${j}`, "info", 1500);
     }
 
     function updateChauffeursDefault() {
@@ -926,30 +968,31 @@
 
     /* ===== Raccourcis clavier ===== */
     document.addEventListener("keydown", e => {
-      // Ctrl+S / Cmd+S → sauvegarder JSON
-      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+      // Ctrl+S / Cmd+S => Sauvegarde JSON
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
         e.preventDefault();
-        telecharger();
+        telechargerJSON();
       }
-      // Alt+← / Alt+→ → changer de mois
+      // Alt+← / Alt+→ => Mois précédent / suivant
       if (e.altKey && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
         e.preventDefault();
-        const sel    = document.getElementById("selectMois");
+        const sel = document.getElementById("selectMois");
         const anneeEl = document.getElementById("annee");
-        let mois  = parseInt(sel.value);
+        let mois = parseInt(sel.value);
         let annee = parseInt(anneeEl.value);
+
         if (e.key === "ArrowLeft") {
           if (mois === 0) { mois = 11; annee--; } else mois--;
         } else {
           if (mois === 11) { mois = 0; annee++; } else mois++;
         }
-        sel.value      = mois;
-        anneeEl.value  = annee;
+        sel.value = mois;
+        anneeEl.value = annee;
         switchMonth();
       }
     });
 
-    /* ===== Écoutes & init ===== */
+    /* ===== Événements & Initialisation ===== */
     document.addEventListener("input", e => {
       if (e.target.closest("#heures") || ["nom", "prenom", "annee"].includes(e.target.id)) {
         if (["nom", "prenom"].includes(e.target.id)) updateChauffeursDefault();
@@ -959,41 +1002,60 @@
     });
 
     document.getElementById("selectMois").addEventListener("change", switchMonth);
-    document.getElementById("annee").addEventListener("input",  updateDateStructure);
+    document.getElementById("annee").addEventListener("input", updateDateStructure);
     document.getElementById("annee").addEventListener("change", switchMonth);
 
     window.addEventListener("DOMContentLoaded", async () => {
-      document.getElementById("annee").value      = new Date().getFullYear();
-      document.getElementById("selectMois").value = new Date().getMonth();
+      initNavBar("index");
+      buildTableRows();
 
+      _config = await loadConfig();
+
+      // Mettre à jour le bouton email si destinataire personnalisé
+      if (_config.email_destinataire) {
+        const btn = document.getElementById("btnEmail");
+        if (_config.email_destinataire.includes("isabelle")) {
+          btn.innerHTML = "✉️ Envoyer à Isabelle";
+        }
+      }
+
+      // Remplir datalist des chantiers récurrents
+      const datalist = document.getElementById("chantiers-list");
+      if (datalist && _config.chantiers && _config.chantiers.length) {
+        datalist.innerHTML = _config.chantiers.map(c => `<option value="${escapeHTML(c)}"></option>`).join("");
+      }
+
+      // Initialiser dates
+      const now = new Date();
+      document.getElementById("annee").value = now.getFullYear();
+      document.getElementById("selectMois").value = now.getMonth();
+
+      // Vérifier si navigation ciblée (depuis l'historique ou l'import)
       const navTarget = localStorage.getItem("heures_nav");
       if (navTarget) {
         try {
           const { mois, annee } = JSON.parse(navTarget);
-          document.getElementById("selectMois").value = mois;
-          document.getElementById("annee").value      = annee;
-        } catch {}
+          if (mois !== undefined) document.getElementById("selectMois").value = mois;
+          if (annee !== undefined) document.getElementById("annee").value = annee;
+        } catch (e) {}
         localStorage.removeItem("heures_nav");
       }
 
-      _activeKey = getStorageKey();
+      _activeKey = getStorageKey(
+        document.getElementById("selectMois").value,
+        document.getElementById("annee").value
+      );
 
-      if (!localStorage.getItem(_activeKey)) {
-        const legacy = localStorage.getItem("heures_data_v2");
-        if (legacy) {
-          localStorage.setItem(_activeKey, legacy);
-          localStorage.removeItem("heures_data_v2");
-        }
-      }
+      populatePlaques();
 
       const saved = localStorage.getItem(_activeKey);
       if (saved) {
-        try { restoreFormData(JSON.parse(saved)); } catch {}
+        try {
+          restoreFormData(JSON.parse(saved));
+        } catch (e) {}
+      } else {
+        updateDateStructure();
       }
-
-      await chargerConfig();
-      document.querySelectorAll('select[name^="plaque_"]').forEach(sel => ensureAutreOption(sel));
-      updateDateStructure();
     });
   </script>
 </body>
