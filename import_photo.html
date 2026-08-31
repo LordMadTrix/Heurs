@@ -435,7 +435,8 @@ Règles impératives :
               }],
               generationConfig: {
                 temperature: 0.1,
-                maxOutputTokens: 4096
+                maxOutputTokens: 8192,
+                responseMimeType: "application/json"
               }
             })
           }
@@ -448,9 +449,8 @@ Règles impératives :
 
         const result = await resp.json();
         let rawText = result.candidates?.[0]?.content?.parts?.[0]?.text || "";
-        rawText = rawText.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
-
-        extractedData = JSON.parse(rawText);
+        
+        extractedData = parseGeminiJSON(rawText);
         afficherResultats(extractedData);
         showToast("Analyse terminée avec succès !", "success");
 
@@ -458,13 +458,57 @@ Règles impératives :
         document.getElementById("resultsContent").innerHTML = `
           <div class="error-box">
             <strong>❌ Échec de l'analyse :</strong> ${escapeHTML(e.message)}<br><br>
-            Vérifiez que votre clé API est valide et active sur Google AI Studio, puis réessayez.
+            Vérifiez que votre clé API est valide et que la photo est bien nette, puis réessayez.
           </div>`;
         showToast("Erreur lors de l'analyse", "error");
       } finally {
         btn.disabled = false;
         btn.innerHTML = "🔄 Réanalyser la photo";
       }
+    }
+
+    /**
+     * Décodeur JSON ultra-résilient avec réparation automatique
+     */
+    function parseGeminiJSON(text) {
+      if (!text) throw new Error("Aucune donnée textuelle reçue de l'IA.");
+
+      let cleaned = text.trim();
+      cleaned = cleaned.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+
+      // Tentative 1 : Parse direct
+      try {
+        return JSON.parse(cleaned);
+      } catch (e) {}
+
+      // Tentative 2 : Nettoyage des virgules en trop et sauts de lignes sauvages
+      try {
+        let fixed = cleaned
+          .replace(/,\s*([\}\]])/g, "$1") // Supprime trailing commas
+          .replace(/[\r\n\t]/g, " ")       // Supprime newlines non échappés
+          .replace(/\\'/g, "'");
+        return JSON.parse(fixed);
+      } catch (e) {}
+
+      // Tentative 3 : Extraction chirurgicale des champs par expression régulière
+      try {
+        const data = {};
+        const regex = /"([a-zA-Z0-9_]+)"\s*:\s*(?:"([^"]*)"|([0-9.]+)|(true|false)|null)/g;
+        let match;
+        while ((match = regex.exec(cleaned)) !== null) {
+          const key = match[1];
+          let val = match[2] !== undefined ? match[2] : match[3];
+          if (val === undefined && match[4]) val = (match[4] === "true");
+          if (val !== undefined && val !== null) {
+            data[key] = val;
+          }
+        }
+        if (Object.keys(data).length >= 2) {
+          return data;
+        }
+      } catch (e) {}
+
+      throw new Error("Format de réponse JSON incomplet. Veuillez reprendre la photo de plus près ou avec un meilleur éclairage.");
     }
 
     /* ===== Affichage des résultats ===== */
