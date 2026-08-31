@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Historique des Prestations</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --accent: #4f46e5;
+      --accent-hover: #4338ca;
+      --text: #1e293b;
+      --muted: #6b7280;
+      --bg: #f8fafc;
+      --border: #e2e8f0;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Outfit', 'Segoe UI', Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 30px 20px;
+      font-size: 14px;
+    }
+
+    .container {
+      max-width: 920px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    }
+
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 25px;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .btn {
+      background: var(--accent);
+      color: #fff;
+      border: 0;
+      padding: 9px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .btn:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+
+    .btn.secondary {
+      background: #fff;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn.secondary:hover { background: var(--bg); }
+
+    .btn-load {
+      background: #ecfdf5;
+      color: #059669;
+      border: 1px solid #a7f3d0;
+      padding: 5px 10px;
+      font-size: 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 600;
+      font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.2s;
+    }
+    .btn-load:hover { background: #d1fae5; }
+
+    .btn-delete {
+      background: #fff;
+      color: #ef4444;
+      border: 1px solid #fecaca;
+      padding: 5px 8px;
+      font-size: 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.2s;
+    }
+    .btn-delete:hover { background: #fef2f2; }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    thead th {
+      background: var(--bg);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    tbody td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: middle;
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: var(--bg); }
+
+    .val-accent {
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .val-muted { color: #94a3b8; }
+
+    .badge-mois {
+      display: inline-block;
+      background: #ede9fe;
+      color: var(--accent);
+      border-radius: 99px;
+      padding: 2px 10px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .actions-cell {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+
+    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { margin: 0; font-size: 15px; }
+    .empty-state a { color: var(--accent); font-weight: 600; text-decoration: none; }
+
+    .total-row {
+      font-size: 12px;
+      color: var(--muted);
+      padding: 10px 16px;
+      text-align: right;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ===== Graphique annuel ===== */
+    .chart-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .chart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      gap: 10px;
+    }
+
+    .chart-header h2 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .chart-year-sel {
+      height: 32px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0 8px;
+      font-family: inherit;
+      font-size: 13px;
+      color: var(--text);
+      background: #fff;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .chart-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      height: 130px;
+    }
+
+    .bar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      height: 100%;
+      gap: 3px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .bar-col:hover .bar { filter: brightness(1.1); }
+
+    .bar-val {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--accent);
+      min-height: 12px;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .bar {
+      width: 100%;
+      border-radius: 4px 4px 0 0;
+      transition: height 0.4s ease, background 0.2s;
+      min-height: 3px;
+    }
+
+    .bar.has-data   { background: var(--accent); }
+    .bar.no-data    { background: #e2e8f0; min-height: 3px; }
+    .bar.cur-month  { background: #10b981; }
+
+    .bar-label {
+      font-size: 9px;
+      color: var(--muted);
+      font-weight: 600;
+      text-align: center;
+      margin-top: 4px;
+    }
+
+    .bar-label.cur-month { color: var(--accent); font-weight: 700; }
+
+    .chart-legend {
+      display: flex;
+      gap: 16px;
+      margin-top: 12px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .legend-dot {
+      display: inline-block;
+      width: 10px; height: 10px;
+      border-radius: 2px;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+
+    @media print {
+      .no-print { display: none !important; }
+      body { padding: 0; background: white; }
+      .container { box-shadow: none; max-width: 100%; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header-row">
+      <h1>📋 Historique des Prestations</h1>
+      <button class="btn secondary no-print" onclick="window.location.href='heures_mensuelles.html'">← Retour</button>
+    </div>
+
+    <!-- Graphique annuel -->
+    <div class="chart-card no-print">
+      <div class="chart-header">
+        <h2>📈 Heures par mois</h2>
+        <select class="chart-year-sel" id="chartAnnee" onchange="renderChart()"></select>
+      </div>
+      <div class="chart-bars" id="chartBars"></div>
+      <div class="chart-legend">
+        <span><span class="legend-dot" style="background:var(--accent)"></span>Données saisies</span>
+        <span><span class="legend-dot" style="background:#10b981"></span>Mois actuel</span>
+        <span><span class="legend-dot" style="background:#e2e8f0"></span>Aucune donnée</span>
+      </div>
+    </div>
+
+    <div id="tableWrapper"></div>
+  </div>
+
+  <script>
+    const MOIS_NOMS = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+                       "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+    const MOIS_COURTS = ["Jan","Fév","Mar","Avr","Mai","Jun","Jul","Aoû","Sep","Oct","Nov","Déc"];
+
+    function getAllEntries() {
+      const entries = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (!key || !key.startsWith("heures_v2_")) continue;
+        try {
+          const data = JSON.parse(localStorage.getItem(key));
+          const parts = key.split("_"); // ["heures", "v2", moisIdx, annee]
+          const moisIdx = parseInt(parts[2]);
+          const annee = parts[3];
+          if (isNaN(moisIdx) || !annee || annee.length !== 4) continue;
+
+          let kmTotal = 0;
+          for (let j = 1; j <= 31; j++) {
+            const km = parseFloat(data[`kms_${j}`] || 0);
+            if (!isNaN(km)) kmTotal += km;
+          }
+
+          // Compte les jours travaillés
+          let joursTravailles = 0;
+          for (let j = 1; j <= 31; j++) {
+            if (data[`total_${j}`] && data[`total_${j}`] !== "00:00") joursTravailles++;
+          }
+
+          entries.push({ key, moisIdx, annee, kmTotal: kmTotal.toFixed(1), joursTravailles,
+            nom:    data.nom    || "",
+            prenom: data.prenom || "",
+            total:  data.totalMois  || "00:00",
+            sup:    data.heuresSup  || "00:00",
+          });
+        } catch {}
+      }
+      entries.sort((a, b) => (+b.annee - +a.annee) || (b.moisIdx - a.moisIdx));
+      return entries;
+    }
+
+    function charger(key) {
+      const parts = key.split("_");
+      localStorage.setItem("heures_nav", JSON.stringify({ mois: parts[2], annee: parts[3] }));
+      window.location.href = "heures_mensuelles.html";
+    }
+
+    function supprimer(key, nom, mois) {
+      if (confirm(`Supprimer définitivement la feuille de ${nom} — ${mois} ?`)) {
+        localStorage.removeItem(key);
+        render();
+      }
+    }
+
+    function render() {
+      const entries = getAllEntries();
+      const wrapper = document.getElementById("tableWrapper");
+
+      if (entries.length === 0) {
+        wrapper.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">📂</div>
+            <p>Aucune feuille sauvegardée pour le moment.</p>
+            <p style="margin-top:10px;"><a href="heures_mensuelles.html">← Ouvrir le formulaire</a></p>
+          </div>`;
+        return;
+      }
+
+      const rows = entries.map(e => {
+        const moisLabel = MOIS_NOMS[e.moisIdx] || "?";
+        const nomComplet = [e.nom, e.prenom].filter(Boolean).join(" ") || "—";
+        return `
+          <tr>
+            <td><strong>${e.nom || "—"}</strong>${e.prenom ? " " + e.prenom : ""}</td>
+            <td><span class="badge-mois">${moisLabel}</span></td>
+            <td>${e.annee}</td>
+            <td>${e.joursTravailles > 0 ? e.joursTravailles + " j" : '<span class="val-muted">—</span>'}</td>
+            <td class="val-accent">${e.total}</td>
+            <td>${e.sup !== "00:00" ? e.sup : '<span class="val-muted">—</span>'}</td>
+            <td>${+e.kmTotal > 0 ? e.kmTotal + " km" : '<span class="val-muted">—</span>'}</td>
+            <td class="no-print">
+              <div class="actions-cell">
+                <button class="btn-load" onclick="charger('${e.key}')">📂 Charger</button>
+                <button class="btn-delete" onclick="supprimer('${e.key}', '${nomComplet.replace(/'/g, "\\'")}', '${moisLabel} ${e.annee}')" title="Supprimer">🗑️</button>
+              </div>
+            </td>
+          </tr>`;
+      }).join("");
+
+      wrapper.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Ouvrier</th>
+              <th>Mois</th>
+              <th>Année</th>
+              <th>Jours</th>
+              <th>Total heures</th>
+              <th>H. sup</th>
+              <th>KM total</th>
+              <th class="no-print" style="width:130px;"></th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div class="total-row no-print">${entries.length} feuille${entries.length > 1 ? "s" : ""} sauvegardée${entries.length > 1 ? "s" : ""}</div>`;
+    }
+
+    render();
+
+    /* ===== Graphique annuel ===== */
+    function parseHM(str) {
+      if (!str) return 0;
+      const [h, m] = str.split(":").map(Number);
+      return (h || 0) + (m || 0) / 60;
+    }
+
+    function initChartYears() {
+      const sel = document.getElementById("chartAnnee");
+      const years = new Set();
+      years.add(new Date().getFullYear());
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith("heures_v2_")) {
+          const annee = parseInt(key.split("_")[3]);
+          if (annee > 2000 && annee < 2100) years.add(annee);
+        }
+      }
+      const sorted = [...years].sort((a, b) => b - a);
+      sel.innerHTML = sorted.map(y => `<option value="${y}">${y}</option>`).join("");
+    }
+
+    function renderChart() {
+      const annee     = parseInt(document.getElementById("chartAnnee").value);
+      const curMois   = new Date().getMonth();
+      const curAnnee  = new Date().getFullYear();
+      const container = document.getElementById("chartBars");
+
+      const heures = [];
+      for (let m = 0; m <= 11; m++) {
+        const key  = `heures_v2_${m}_${annee}`;
+        const data = localStorage.getItem(key);
+        if (data) {
+          try {
+            const parsed = JSON.parse(data);
+            heures.push(parseHM(parsed.totalMois || ""));
+          } catch { heures.push(0); }
+        } else {
+          heures.push(0);
+        }
+      }
+
+      const maxH = Math.max(...heures, 1);
+
+      container.innerHTML = heures.map((h, m) => {
+        const pct    = Math.round((h / maxH) * 100);
+        const isCur  = m === curMois && annee === curAnnee;
+        const hasData = h > 0;
+        const cls    = isCur ? "cur-month" : (hasData ? "has-data" : "no-data");
+        const label  = hasData ? (Number.isInteger(h) ? h + "h" : h.toFixed(1) + "h") : "";
+        const hauteur = hasData ? Math.max(pct, 6) : 3;
+        return `
+          <div class="bar-col" onclick="chargerMois(${m}, ${annee})" title="${MOIS_NOMS[m]} ${annee}${hasData ? ' — ' + label : ''}">
+            <div class="bar-val">${label}</div>
+            <div class="bar ${cls}" style="height:${hauteur}%"></div>
+            <div class="bar-label${isCur ? ' cur-month' : ''}">${MOIS_COURTS[m]}</div>
+          </div>`;
+      }).join("");
+    }
+
+    function chargerMois(mois, annee) {
+      const key = `heures_v2_${mois}_${annee}`;
+      if (localStorage.getItem(key)) {
+        localStorage.setItem("heures_nav", JSON.stringify({ mois: String(mois), annee: String(annee) }));
+        window.location.href = "heures_mensuelles.html";
+      }
+    }
+
+    initChartYears();
+    renderChart();
+  </script>
+</body>
+
+</html>

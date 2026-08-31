@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Résumé des Prestations</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --accent: #4f46e5;
+      --text: #1e293b;
+      --muted: #6b7280;
+      --bg: #f8fafc;
+      --border: #e2e8f0;
+      --green: #10b981;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      max-width: 520px;
+      width: 100%;
+    }
+
+    h1 { color: var(--accent); margin-top: 0; font-size: 22px; }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding: 16px;
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .info-item label {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 2px;
+    }
+
+    .info-item span {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .stats { border-top: 2px solid var(--border); padding-top: 20px; }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .stat-row:last-child { border-bottom: none; }
+
+    .stat-label { font-size: 15px; color: var(--text); }
+    .stat-label .sub { font-size: 11px; color: var(--muted); display: block; margin-top: 1px; }
+
+    .stat-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .stat-value.green { color: var(--green); }
+    .stat-value.sm    { font-size: 16px; }
+
+    .km-section {
+      margin-top: 16px;
+      padding: 14px;
+      background: #f0fdf4;
+      border-radius: 8px;
+      border: 1px solid #bbf7d0;
+    }
+
+    .km-section h3 {
+      margin: 0 0 10px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #059669;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .km-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      padding: 4px 0;
+    }
+
+    .km-row .km-label { color: var(--muted); }
+    .km-row .km-val   { font-weight: 700; color: var(--text); }
+    .km-row.total     { border-top: 1px solid #bbf7d0; margin-top: 6px; padding-top: 8px; }
+    .km-row.total .km-label { color: var(--text); font-weight: 600; }
+    .km-row.total .km-val   { color: var(--green); font-size: 16px; }
+
+    .btn-print {
+      margin-top: 24px;
+      width: 100%;
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 15px;
+      font-family: inherit;
+      transition: background 0.2s;
+    }
+    .btn-print:hover { background: #4338ca; }
+
+    @media print {
+      .btn-print { display: none; }
+      body { background: white; padding: 0; }
+      .container { box-shadow: none; max-width: 100%; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>📊 Résumé Mensuel</h1>
+
+    <div class="info-grid">
+      <div class="info-item"><label>Nom</label><span id="resNom">—</span></div>
+      <div class="info-item"><label>Prénom</label><span id="resPrenom">—</span></div>
+      <div class="info-item"><label>Mois</label><span id="resMois">—</span></div>
+      <div class="info-item"><label>Année</label><span id="resAnnee">—</span></div>
+    </div>
+
+    <div class="stats">
+      <div class="stat-row">
+        <span class="stat-label">Total heures effectuées</span>
+        <span class="stat-value" id="resTotal">00:00</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Heures supplémentaires</span>
+        <span class="stat-value" id="resSup">00:00</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Jours travaillés</span>
+        <span class="stat-value sm" id="resJours">0</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Total kilomètres</span>
+        <span class="stat-value sm" id="resKmTotal">0 km</span>
+      </div>
+    </div>
+
+    <div class="km-section" id="kmSection" style="display:none">
+      <h3>Frais kilométriques</h3>
+      <div class="km-row" id="kmChauffeurRow">
+        <span class="km-label">Conducteur (<span id="kmChauffeurKm">0</span> km × <span id="tarifChauffeur">0</span> €)</span>
+        <span class="km-val" id="kmChauffeurTotal">0.00 €</span>
+      </div>
+      <div class="km-row" id="kmAccomRow">
+        <span class="km-label">Accompagnateur (<span id="kmAccomKm">0</span> km × <span id="tarifAccom">0</span> €)</span>
+        <span class="km-val" id="kmAccomTotal">0.00 €</span>
+      </div>
+      <div class="km-row total">
+        <span class="km-label">Total frais km</span>
+        <span class="km-val green" id="kmGrandTotal">0.00 €</span>
+      </div>
+    </div>
+
+    <button class="btn-print" onclick="window.print()">🖨️ Imprimer ce résumé</button>
+  </div>
+
+  <script>
+    const MOIS_NOMS = ["Janvier","Février","Mars","Avril","Mai","Juin",
+                       "Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const key   = localStorage.getItem("heures_resume_key");
+      const saved = key ? localStorage.getItem(key) : null;
+
+      if (!saved) {
+        alert("Aucune donnée trouvée. Veuillez d'abord remplir vos heures.");
+        return;
+      }
+
+      const data   = JSON.parse(saved);
+      const config = JSON.parse(localStorage.getItem("heures_config") || "{}");
+      const tarifC = config.tarif_km_chauffeur     || 0;
+      const tarifA = config.tarif_km_accompagnateur || 0;
+      const nomOuvrier = (data.nom || "").trim().toLowerCase();
+
+      // Infos générales
+      document.getElementById("resNom").textContent    = data.nom    || "—";
+      document.getElementById("resPrenom").textContent = data.prenom || "—";
+      document.getElementById("resMois").textContent   = MOIS_NOMS[parseInt(data.selectMois)] || "—";
+      document.getElementById("resAnnee").textContent  = data.annee  || "—";
+      document.getElementById("resTotal").textContent  = data.totalMois  || "00:00";
+      document.getElementById("resSup").textContent    = data.heuresSup  || "00:00";
+
+      // Calculs jours + km
+      let jours = 0, kmTotal = 0, kmChauffeur = 0, kmAccom = 0;
+      for (let j = 1; j <= 31; j++) {
+        if (data[`total_${j}`] && data[`total_${j}`] !== "00:00") jours++;
+        const km      = parseFloat(data[`kms_${j}`] || 0) || 0;
+        const chauff  = (data[`chauffeur_${j}`] || "").trim().toLowerCase();
+        if (km > 0) {
+          kmTotal += km;
+          const estChauffeur = !chauff || chauff === nomOuvrier;
+          if (estChauffeur) kmChauffeur += km;
+          else              kmAccom     += km;
+        }
+      }
+
+      document.getElementById("resJours").textContent   = jours + " j";
+      document.getElementById("resKmTotal").textContent = kmTotal.toFixed(1) + " km";
+
+      // Frais km
+      if ((tarifC > 0 || tarifA > 0) && kmTotal > 0) {
+        const fraisC = kmChauffeur * tarifC;
+        const fraisA = kmAccom     * tarifA;
+        const total  = fraisC + fraisA;
+
+        document.getElementById("kmSection").style.display = "";
+        document.getElementById("tarifChauffeur").textContent = tarifC.toFixed(2);
+        document.getElementById("tarifAccom").textContent     = tarifA.toFixed(2);
+        document.getElementById("kmChauffeurKm").textContent  = kmChauffeur.toFixed(1);
+        document.getElementById("kmAccomKm").textContent      = kmAccom.toFixed(1);
+        document.getElementById("kmChauffeurTotal").textContent = fraisC.toFixed(2) + " €";
+        document.getElementById("kmAccomTotal").textContent    = fraisA.toFixed(2) + " €";
+        document.getElementById("kmGrandTotal").textContent    = total.toFixed(2) + " €";
+
+        if (kmChauffeur === 0) document.getElementById("kmChauffeurRow").style.display = "none";
+        if (kmAccom     === 0) document.getElementById("kmAccomRow").style.display     = "none";
+      }
+    });
+  </script>
+</body>
+
+</html>

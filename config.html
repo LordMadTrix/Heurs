@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Configuration — Heures Mensuelles</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --accent: #4f46e5;
+      --accent-hover: #4338ca;
+      --text: #1e293b;
+      --muted: #6b7280;
+      --bg: #f8fafc;
+      --border: #e2e8f0;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Outfit', 'Segoe UI', Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 24px 16px;
+      font-size: 14px;
+    }
+
+    .container { max-width: 640px; margin: 0 auto; }
+
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    h1 { margin: 0; font-size: 22px; color: var(--accent); font-weight: 700; }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .card h2 {
+      margin: 0 0 16px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-bottom: 14px;
+    }
+    .field:last-child { margin-bottom: 0; }
+
+    .field label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .field .hint {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .field input[type="text"],
+    .field input[type="email"],
+    .field input[type="number"] {
+      height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0 12px;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--text);
+      background: #fff;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      width: 100%;
+    }
+
+    .field input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+      outline: none;
+    }
+
+    .two-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    /* Tags */
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      min-height: 38px;
+      margin-bottom: 12px;
+      align-items: flex-start;
+    }
+
+    .empty-hint {
+      font-size: 12px;
+      color: #94a3b8;
+      align-self: center;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border-radius: 99px;
+      padding: 5px 12px 5px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1;
+    }
+
+    .tag.purple { background: #ede9fe; color: var(--accent); }
+    .tag.green  { background: #ecfdf5; color: #059669; }
+
+    .tag-remove {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      line-height: 1;
+      color: inherit;
+      opacity: 0.55;
+      transition: opacity 0.15s, background 0.15s;
+    }
+    .tag-remove:hover { opacity: 1; background: rgba(0, 0, 0, 0.08); }
+
+    .add-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .add-row input {
+      flex: 1;
+      height: 38px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 0 11px;
+      font-family: inherit;
+      font-size: 13px;
+      color: var(--text);
+      background: #fff;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .add-row input:focus { border-color: var(--accent); }
+
+    /* Buttons */
+    .btn {
+      border: 0;
+      padding: 9px 16px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn.primary { background: var(--accent); color: #fff; }
+    .btn.primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+
+    .btn.secondary {
+      background: #fff;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn.secondary:hover { background: var(--bg); }
+
+    .btn.success { background: #10b981; color: #fff; }
+    .btn.success:hover { background: #059669; transform: translateY(-1px); }
+
+    .btn.sm { padding: 6px 12px; height: 38px; font-size: 12px; }
+
+    .actions-footer {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      padding-top: 8px;
+    }
+
+    .save-badge {
+      font-size: 12px;
+      font-weight: 600;
+      color: #10b981;
+      margin-left: auto;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .save-badge.show { opacity: 1; }
+
+    @media (max-width: 500px) {
+      body { padding: 12px; }
+      .two-cols { grid-template-columns: 1fr; }
+      .header-row { margin-bottom: 16px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <div class="header-row">
+      <h1>⚙️ Configuration</h1>
+      <button class="btn secondary" onclick="window.location.href='heures_mensuelles.html'">← Retour</button>
+    </div>
+
+    <!-- Entreprise -->
+    <div class="card">
+      <h2>Entreprise</h2>
+      <div class="field">
+        <label for="cfg-entreprise">Nom de l'entreprise</label>
+        <input type="text" id="cfg-entreprise" placeholder="Ex : EECOCUR" />
+      </div>
+      <div class="field">
+        <label for="cfg-email">Email destinataire (envoi des feuilles)</label>
+        <input type="email" id="cfg-email" placeholder="Ex : isabelle@exemple.be" />
+      </div>
+    </div>
+
+    <!-- Temps de travail -->
+    <div class="card">
+      <h2>Temps de travail &amp; Kilomètres</h2>
+      <div class="two-cols">
+        <div class="field">
+          <label for="cfg-heures">Heures normales / jour</label>
+          <input type="number" id="cfg-heures" min="1" max="14" step="0.5" placeholder="8" />
+          <span class="hint">Seuil de calcul des heures supplémentaires</span>
+        </div>
+        <div class="field" style="grid-column: span 1;"></div>
+      </div>
+      <p style="font-size:12px; color:var(--muted); margin: 6px 0 12px;">
+        Le tarif appliqué dépend du nom dans la colonne <strong>Chauffeur</strong> :
+        si c'est votre nom → vous conduisez ; si c'est un autre nom → vous êtes accompagnateur.
+      </p>
+      <div class="two-cols">
+        <div class="field">
+          <label for="cfg-km-chauffeur">Tarif conducteur (€/km)</label>
+          <input type="number" id="cfg-km-chauffeur" min="0" max="5" step="0.01" placeholder="0.42" />
+          <span class="hint">Votre nom est dans la colonne Chauffeur</span>
+        </div>
+        <div class="field">
+          <label for="cfg-km-accompagnateur">Tarif accompagnateur (€/km)</label>
+          <input type="number" id="cfg-km-accompagnateur" min="0" max="5" step="0.01" placeholder="0.20" />
+          <span class="hint">Un autre nom est dans la colonne Chauffeur</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Véhicules -->
+    <div class="card">
+      <h2>Véhicules — Plaques d'immatriculation</h2>
+      <div class="tag-list" id="plaques-list"></div>
+      <div class="add-row">
+        <input type="text" id="new-plaque" placeholder="Ex : 3-ABC-123" maxlength="12"
+          onkeydown="if(event.key==='Enter') ajouterPlaque()" />
+        <button class="btn sm primary" onclick="ajouterPlaque()">+ Ajouter</button>
+      </div>
+    </div>
+
+    <!-- Chantiers récurrents -->
+    <div class="card">
+      <h2>Chantiers récurrents</h2>
+      <p style="font-size:12px; color:var(--muted); margin: -6px 0 14px;">
+        Ces chantiers apparaissent en suggestion dans la colonne "N° chantier" du formulaire.
+      </p>
+      <div class="tag-list" id="chantiers-list"></div>
+      <div class="add-row">
+        <input type="text" id="new-chantier" placeholder="Ex : Chantier Route de Lyon"
+          onkeydown="if(event.key==='Enter') ajouterChantier()" />
+        <button class="btn sm primary" onclick="ajouterChantier()">+ Ajouter</button>
+      </div>
+    </div>
+
+    <!-- Clé Gemini -->
+    <div class="card">
+      <h2>Import photo — Clé API Google Gemini</h2>
+      <p style="font-size:12px; color:var(--muted); margin: -6px 0 14px;">
+        Utilisée par la fonction "📷 Import photo" pour lire les fiches automatiquement.
+        Clé gratuite sur <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener"
+          style="color:var(--accent);">aistudio.google.com</a>.
+      </p>
+      <div class="field">
+        <label for="cfg-gemini">Clé API Gemini</label>
+        <div style="display:flex; gap:8px;">
+          <input type="password" id="cfg-gemini" placeholder="AIzaSy…"
+            style="flex:1; height:42px; border:1px solid var(--border); border-radius:8px;
+                   padding:0 12px; font-family:inherit; font-size:14px;
+                   background:#fff; outline:none; transition:border-color .2s;"
+            onfocus="this.style.borderColor='var(--accent)'"
+            onblur="this.style.borderColor='var(--border)'" />
+          <button class="btn sm secondary" type="button"
+            onclick="const i=document.getElementById('cfg-gemini'); i.type=i.type==='password'?'text':'password'">👁</button>
+        </div>
+        <span class="hint">Stockée uniquement sur cet appareil, jamais partagée.</span>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions-footer">
+      <button class="btn success" onclick="sauvegarder()">💾 Sauvegarder</button>
+      <button class="btn secondary" onclick="exporterJSON()">📤 Exporter config.json</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importerJSON(event)" />
+      <button class="btn secondary" onclick="document.getElementById('importFile').click()">📂 Importer</button>
+      <span class="save-badge" id="saveBadge">✓ Sauvegardé !</span>
+    </div>
+
+  </div>
+
+  <script>
+    const DEFAULT_CONFIG = {
+      nom_entreprise: "",
+      email_destinataire: "deutsch.isabelle@eecocur.be",
+      heures_normales_par_jour: 8,
+      tarif_km: 0,
+      plaques: ["1-TQP-700", "2-BSW-604"],
+      chantiers: []
+    };
+
+    let cfg = { ...DEFAULT_CONFIG };
+
+    /* ===== Chargement initial ===== */
+    async function charger() {
+      const stored = localStorage.getItem("heures_config");
+      if (stored) {
+        try { cfg = { ...DEFAULT_CONFIG, ...JSON.parse(stored) }; } catch {}
+      } else {
+        try {
+          const res = await fetch('config.json');
+          if (res.ok) cfg = { ...DEFAULT_CONFIG, ...await res.json() };
+        } catch {}
+      }
+      appliquerUI();
+    }
+
+    function appliquerUI() {
+      document.getElementById("cfg-entreprise").value = cfg.nom_entreprise || "";
+      document.getElementById("cfg-email").value      = cfg.email_destinataire || "";
+      document.getElementById("cfg-heures").value     = cfg.heures_normales_par_jour ?? 8;
+      document.getElementById("cfg-km-chauffeur").value     = cfg.tarif_km_chauffeur     > 0 ? cfg.tarif_km_chauffeur     : "";
+      document.getElementById("cfg-km-accompagnateur").value = cfg.tarif_km_accompagnateur > 0 ? cfg.tarif_km_accompagnateur : "";
+      renderTags("plaques-list",   cfg.plaques   || [], "purple", supprimerPlaque);
+      renderTags("chantiers-list", cfg.chantiers || [], "green",  supprimerChantier);
+      const geminiKey = localStorage.getItem("gemini_api_key") || "";
+      document.getElementById("cfg-gemini").value = geminiKey;
+    }
+
+    /* ===== Tags ===== */
+    function esc(str) {
+      return String(str)
+        .replace(/&/g,"&amp;").replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    }
+
+    function renderTags(containerId, items, color, removeFn) {
+      const el = document.getElementById(containerId);
+      if (!items.length) {
+        el.innerHTML = '<span class="empty-hint">Aucun élément — ajoutez-en ci-dessous</span>';
+        return;
+      }
+      el.innerHTML = items.map((item, i) => `
+        <span class="tag ${color}">
+          ${esc(item)}
+          <button class="tag-remove" onclick="${removeFn.name}(${i})" title="Supprimer">×</button>
+        </span>`).join("");
+    }
+
+    function ajouterPlaque() {
+      const inp = document.getElementById("new-plaque");
+      const val = inp.value.trim().toUpperCase();
+      if (!val) return;
+      if (!cfg.plaques.includes(val)) {
+        cfg.plaques.push(val);
+        renderTags("plaques-list", cfg.plaques, "purple", supprimerPlaque);
+      }
+      inp.value = ""; inp.focus();
+    }
+
+    function supprimerPlaque(i) {
+      cfg.plaques.splice(i, 1);
+      renderTags("plaques-list", cfg.plaques, "purple", supprimerPlaque);
+    }
+
+    function ajouterChantier() {
+      const inp = document.getElementById("new-chantier");
+      const val = inp.value.trim();
+      if (!val) return;
+      if (!cfg.chantiers.includes(val)) {
+        cfg.chantiers.push(val);
+        renderTags("chantiers-list", cfg.chantiers, "green", supprimerChantier);
+      }
+      inp.value = ""; inp.focus();
+    }
+
+    function supprimerChantier(i) {
+      cfg.chantiers.splice(i, 1);
+      renderTags("chantiers-list", cfg.chantiers, "green", supprimerChantier);
+    }
+
+    /* ===== Sauvegarde ===== */
+    function lireFormulaire() {
+      cfg.nom_entreprise           = document.getElementById("cfg-entreprise").value.trim();
+      cfg.email_destinataire       = document.getElementById("cfg-email").value.trim();
+      cfg.heures_normales_par_jour = parseFloat(document.getElementById("cfg-heures").value) || 8;
+      cfg.tarif_km_chauffeur     = parseFloat(document.getElementById("cfg-km-chauffeur").value)     || 0;
+      cfg.tarif_km_accompagnateur = parseFloat(document.getElementById("cfg-km-accompagnateur").value) || 0;
+    }
+
+    function sauvegarder() {
+      lireFormulaire();
+      localStorage.setItem("heures_config", JSON.stringify(cfg));
+      const geminiKey = document.getElementById("cfg-gemini").value.trim();
+      if (geminiKey) localStorage.setItem("gemini_api_key", geminiKey);
+      else localStorage.removeItem("gemini_api_key");
+      const badge = document.getElementById("saveBadge");
+      badge.classList.add("show");
+      setTimeout(() => badge.classList.remove("show"), 2200);
+    }
+
+    function exporterJSON() {
+      lireFormulaire();
+      const blob = new Blob([JSON.stringify(cfg, null, 2)], { type: "application/json" });
+      const a = Object.assign(document.createElement("a"), {
+        href: URL.createObjectURL(blob),
+        download: "config.json"
+      });
+      a.click();
+    }
+
+    function importerJSON(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          cfg = { ...DEFAULT_CONFIG, ...JSON.parse(reader.result) };
+          appliquerUI();
+          alert("Configuration importée avec succès !");
+        } catch {
+          alert("Fichier invalide — veuillez sélectionner un config.json exporté par cette application.");
+        }
+        event.target.value = "";
+      };
+      reader.readAsText(file, "utf-8");
+    }
+
+    charger();
+  </script>
+</body>
+
+</html>

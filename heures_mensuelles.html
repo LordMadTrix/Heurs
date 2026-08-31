@@ -1,0 +1,1001 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+  <meta charset="utf-8" />
+  <title>HEURES MENSUELLES PAR OUVRIER</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --border: #d1d5db;
+      --muted: #6b7280;
+      --accent: #4f46e5;
+      --accent-hover: #4338ca;
+      --bg-page: #f8fafc;
+      --bg-sheet: #ffffff;
+      --text: #1e293b;
+      --weekend-bg: #f1f5f9;
+      --row-hover: #f8fafc;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Outfit", "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--text);
+      margin: 0;
+      background: var(--bg-page);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    /* Format A4 à l'écran */
+    .sheet {
+      max-width: 210mm;
+      width: 100%;
+      min-height: 297mm;
+      margin: 40px auto;
+      padding: 15mm;
+      background: var(--bg-sheet);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+      border-radius: 4px;
+      position: relative;
+    }
+
+    /* Scroll horizontal du tableau sur petits écrans */
+    .table-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 8px;
+    }
+    .table-scroll table {
+      min-width: 600px;
+    }
+
+    h1 {
+      font-size: 22px;
+      color: var(--accent);
+      text-align: center;
+      margin: 0 0 25px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+    }
+
+    .header {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 25px;
+      background: #fdfdfd;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #f1f5f9;
+    }
+
+    .header .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .header .field label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .header input {
+      width: 100%;
+      height: 32px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 0 10px;
+      font-family: inherit;
+      font-size: 13px;
+      background: #fff;
+      transition: all 0.2s;
+      text-align: left;
+    }
+
+    .header input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+      outline: none;
+    }
+
+    /* Tableau */
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      table-layout: fixed;
+      font-size: 11px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      /* overflow: hidden; */
+      /* Retiré pour le sticky header */
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: inset 0 -1px 0 var(--border);
+    }
+
+    th,
+    td {
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 6px 4px;
+      text-align: center;
+      vertical-align: middle;
+      word-wrap: break-word;
+      transition: background-color 0.2s;
+    }
+
+    th:last-child,
+    td:last-child {
+      border-right: none;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    th {
+      background: #f8fafc;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      font-size: 9px;
+      letter-spacing: 0.05em;
+      height: 40px;
+    }
+
+    tbody tr:hover {
+      background-color: var(--row-hover);
+    }
+
+    /* Largeurs */
+    th:nth-child(1),
+    td:nth-child(1) {
+      width: 35px;
+      font-weight: 700;
+      background: #f8fafc;
+    }
+
+    th.col-weekend,
+    td.col-weekend {
+      width: 30px;
+    }
+
+    /* Champs */
+    input,
+    select {
+      font-family: inherit;
+      font-size: 11px;
+      width: 100%;
+      border: none;
+      background: transparent;
+      outline: none;
+      padding: 4px;
+      text-align: center;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+    }
+
+    input:not([readonly]):focus {
+      background: #fff;
+      box-shadow: inset 0 0 0 1px var(--accent);
+    }
+
+    input[readonly] {
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .plaque-autre {
+      display: none;
+      margin-top: 2px;
+      border: 1px solid var(--accent) !important;
+      background: #fff !important;
+    }
+
+    /* Nettoyage UI native */
+    input[type="time"]::-webkit-calendar-picker-indicator {
+      display: none;
+      -webkit-appearance: none;
+    }
+
+    select {
+      appearance: none;
+      cursor: pointer;
+    }
+
+    /* Weekend grisé */
+    .weekend {
+      background-color: var(--weekend-bg) !important;
+      color: #94a3b8;
+    }
+
+    .weekend input {
+      opacity: 0.3;
+    }
+
+    /* Pied de tableau et note */
+    tfoot td {
+      font-weight: 700;
+      background: #f8fafc;
+      padding: 10px;
+    }
+
+    #totalMois,
+    #heuresSup {
+      font-size: 14px;
+      color: var(--accent);
+    }
+
+    /* Actions */
+    .actions {
+      margin-top: 25px;
+      display: flex;
+      gap: 8px;
+      /* Gap réduit */
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    button {
+      background: var(--accent);
+      color: #fff;
+      border: 0;
+      padding: 8px 14px;
+      /* Taille réduite */
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      /* Police un peu plus petite */
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      touch-action: manipulation;
+    }
+
+    button:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button.secondary {
+      background: #fff;
+      color: var(--text);
+      border: 1px solid #e2e8f0;
+    }
+
+    button.secondary:hover {
+      background: #f8fafc;
+    }
+
+    /* ===== Tablette / iPad ===== */
+    @media screen and (max-width: 830px) {
+      body { padding: 0; }
+
+      .sheet {
+        margin: 0;
+        padding: 12px;
+        border-radius: 0;
+        min-height: 100dvh;
+        box-shadow: none;
+      }
+
+      h1 { font-size: 16px; margin-bottom: 14px; }
+
+      .header {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        padding: 10px;
+      }
+
+      .header input,
+      .header select {
+        height: 40px;
+        font-size: 14px;
+      }
+
+      table { font-size: 12px; }
+
+      th { font-size: 10px; height: 36px; }
+
+      td, th { padding: 5px 4px; }
+
+      input, select { font-size: 12px; min-height: 30px; }
+
+      button { min-height: 40px; font-size: 13px; }
+
+      .actions { justify-content: flex-start; gap: 6px; }
+    }
+
+    @media screen and (max-width: 500px) {
+      .header { grid-template-columns: 1fr; }
+    }
+
+    /* ===== Impression A4 — une seule page ===== */
+    @page {
+      size: A4 portrait;
+      margin: 7mm 8mm;
+    }
+
+    @media print {
+      html, body {
+        background: #fff;
+        margin: 0;
+        padding: 0;
+      }
+
+      .sheet {
+        box-shadow: none;
+        border: none;
+        margin: 0;
+        max-width: 100%;
+        width: 100%;
+        min-height: unset;
+        padding: 0;
+        border-radius: 0;
+      }
+
+      h1 {
+        font-size: 13px;
+        margin-bottom: 6px;
+      }
+
+      .header {
+        padding: 6px 8px;
+        margin-bottom: 8px;
+        gap: 8px;
+      }
+
+      .header .field label {
+        font-size: 8px;
+      }
+
+      .header input {
+        height: 18px;
+        font-size: 10px;
+        padding: 0 5px;
+      }
+
+      .table-scroll { overflow: visible; border-radius: 0; }
+
+      table {
+        font-size: 8px;
+        border-radius: 0;
+        min-width: unset;
+        page-break-inside: avoid;
+      }
+
+      th {
+        font-size: 7.5px;
+        height: auto;
+        padding: 3px 3px;
+        background: #f8fafc !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        position: static;
+        box-shadow: none;
+      }
+
+      td {
+        padding: 2.5px 3px;
+      }
+
+      input, select {
+        font-size: 8px;
+        min-height: unset;
+        padding: 1px 2px;
+      }
+
+      tfoot td {
+        padding: 4px 6px;
+        font-size: 9px;
+      }
+
+      #totalMois, #heuresSup {
+        font-size: 10px;
+      }
+
+      input.chk-weekend {
+        width: 11px;
+        height: 11px;
+      }
+
+      .no-print,
+      .col-weekend {
+        display: none !important;
+      }
+
+      .weekend {
+        background-color: #f1f5f9 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="sheet">
+    <h1><span style="font-weight: 300; color: var(--muted)">FEUILLE DE PRESTATIONS</span><br>Heures Mensuelles</h1>
+
+    <div class="header">
+      <div class="field"><label for="nom">NOM:</label><input id="nom" type="text" placeholder="Entrez le nom" /></div>
+      <div class="field"><label for="prenom">PRENOM:</label><input id="prenom" type="text"
+          placeholder="Entrez le prénom" /></div>
+      <div class="field">
+        <label for="periode">PÉRIODE:</label>
+        <div style="display: flex; gap: 4px;">
+          <select id="selectMois"
+            style="text-align: left; height: 32px; border: 1px solid #e2e8f0; padding: 0 5px; border-radius: 6px; background: white;">
+            <option value="0">Janvier</option>
+            <option value="1">Février</option>
+            <option value="2">Mars</option>
+            <option value="3">Avril</option>
+            <option value="4">Mai</option>
+            <option value="5">Juin</option>
+            <option value="6">Juillet</option>
+            <option value="7">Août</option>
+            <option value="8">Septembre</option>
+            <option value="9">Octobre</option>
+            <option value="10">Novembre</option>
+            <option value="11">Décembre</option>
+          </select>
+          <input id="annee" type="number" value="2026"
+            style="width: 70px; text-align: left; height: 32px; border: 1px solid #e2e8f0; padding: 0 5px; border-radius: 6px;" />
+        </div>
+      </div>
+    </div>
+
+    <div class="table-scroll">
+    <table id="heures">
+      <thead>
+        <tr>
+          <th>Jour</th>
+          <th class="col-weekend">W</th>
+          <th>N° chantier</th>
+          <th>Localité</th>
+          <th>Kms</th>
+          <th>Plaque</th>
+          <th>Début</th>
+          <th>Fin</th>
+          <th>Aent</th>
+          <th>Total</th>
+          <th>Chauffeur</th>
+          <th class="no-print" style="width: 35px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <script>
+          for (let j = 1; j <= 31; j++) {
+            document.write(`
+            <tr id="row_${j}">
+              <td>${j}</td>
+              <td class="col-weekend"><input type="checkbox" class="chk-weekend" onchange="toggleWeekend(this)"></td>
+              <td><input name="chantier_${j}" list="chantiers-list" placeholder="..." /></td>
+              <td><input name="localite_${j}" placeholder="..." /></td>
+              <td><input name="kms_${j}" type="number" step="0.1" inputmode="decimal" /></td>
+              <td>
+                <select name="plaque_${j}" class="plaque-select" onchange="gererAutrePlaque(this)">
+                  <option value="">Sélectionner</option>
+                  <option value="autre">Autre…</option>
+                </select>
+                <input type="text" name="plaque_autre_${j}" class="plaque-autre" placeholder="Plaque" maxlength="9" />
+              </td>
+              <td><input name="debut_${j}" type="time" /></td>
+              <td><input name="fin_${j}" type="time" /></td>
+              <td><input name="aent_${j}" type="time" step="60" /></td>
+              <td><input name="total_${j}" class="total" readonly /></td>
+              <td><input name="chauffeur_${j}" class="chauffeur-input" /></td>
+              <td class="no-print">${j > 1 ? `<button type="button" onclick="copyPrevious(${j})" style="padding: 4px 8px; font-size: 10px; background: #f1f5f9; color: #64748b;" title="Copier la ligne précédente">▼</button>` : ''}</td>
+            </tr>
+          `);
+          }
+        </script>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="9" style="text-align:right;">Total mensuel (heures):</td>
+          <td><input id="totalMois" readonly /></td>
+        </tr>
+        <tr>
+          <td colspan="9" style="text-align:right;">Heures supplémentaires:</td>
+          <td><input id="heuresSup" readonly /></td>
+        </tr>
+        <tr id="fraisKmRow" style="display:none">
+          <td colspan="9" style="text-align:right;">Frais kilométriques:</td>
+          <td><input id="fraisKm" readonly /></td>
+        </tr>
+      </tfoot>
+
+    </table>
+    </div><!-- /.table-scroll -->
+
+    <div class="actions no-print">
+      <button type="button" onclick="resetForm()" class="secondary" style="margin-right: auto; color: #ef4444;">🗑️
+        Vider</button>
+      <button type="button" onclick="envoyerEmail()" style="background: #e11d48;">✉️ Envoyer à Isabelle</button>
+      <button type="button" onclick="ouvrirResume()" style="background: #10b981;">📊 Résumé</button>
+      <button type="button" onclick="exportCSV()" class="secondary">📈 Excel</button>
+      <button type="button" onclick="window.print()" class="secondary">🖨️ PDF</button>
+      <button type="button" onclick="telecharger()">💾 Sauvegarder</button>
+      <input type="file" id="importFile" accept=".json" style="display: none" onchange="importer(event)" />
+      <button type="button" onclick="document.getElementById('importFile').click()" class="secondary">📂
+        Charger</button>
+      <button type="button" onclick="window.open('historique.html','_blank')" class="secondary">📋 Historique</button>
+      <button type="button" onclick="window.open('import_photo.html','_blank')" class="secondary">📷 Import photo</button>
+      <button type="button" onclick="window.open('config.html','_blank')" class="secondary">⚙️ Config</button>
+    </div>
+    <p class="no-print" style="text-align:right; font-size:10px; color:var(--muted); margin:6px 0 0;">
+      ⌨️ <strong>Ctrl+S</strong> sauvegarder &nbsp;·&nbsp; <strong>Alt+←/→</strong> changer de mois
+    </p>
+    <datalist id="chantiers-list"></datalist>
+  </div>
+
+  <script>
+    function ouvrirResume() {
+      localStorage.setItem("heures_resume_key", _activeKey || getStorageKey());
+      window.open('resume.html', '_blank');
+    }
+
+    /* ===== Configuration ===== */
+    const DEFAULT_CONFIG = {
+      plaques: [],
+      chantiers: [],
+      email_destinataire: "deutsch.isabelle@eecocur.be",
+      heures_normales_par_jour: 8,
+      tarif_km_chauffeur: 0,
+      tarif_km_accompagnateur: 0,
+      nom_entreprise: ""
+    };
+    let _config = { ...DEFAULT_CONFIG };
+
+    async function chargerConfig() {
+      try {
+        const stored = localStorage.getItem("heures_config");
+        if (stored) {
+          _config = { ...DEFAULT_CONFIG, ...JSON.parse(stored) };
+        } else {
+          const response = await fetch('config.json');
+          if (response.ok) _config = { ...DEFAULT_CONFIG, ...await response.json() };
+        }
+      } catch (e) {
+        console.warn("Config non trouvée.");
+      }
+
+      if (_config.plaques && _config.plaques.length) {
+        document.querySelectorAll('.plaque-select').forEach(select => {
+          const currentVal = select.value;
+          select.innerHTML = "";
+          select.add(new Option("Sélectionner", ""));
+          _config.plaques.forEach(p => select.add(new Option(p, p)));
+          select.add(new Option("Autre…", "autre"));
+          select.value = currentVal;
+        });
+      }
+
+      const datalist = document.getElementById("chantiers-list");
+      if (datalist && _config.chantiers && _config.chantiers.length) {
+        datalist.innerHTML = _config.chantiers.map(c =>
+          `<option value="${c.replace(/"/g, '&quot;')}"></option>`
+        ).join("");
+      }
+    }
+
+    /* ===== Utilitaires temps ===== */
+    function parseHHMM(str) {
+      if (!str) return 0;
+      const m = str.trim().match(/^(\d{1,2}):([0-5]\d)(?::([0-5]\d))?$/);
+      if (!m) return 0;
+      return +m[1] * 3600 + +m[2] * 60 + (m[3] ? +m[3] : 0);
+    }
+    function toHHMM(sec) {
+      const neg = sec < 0;
+      let s = Math.abs(Math.round(sec));
+      const h = Math.floor(s / 3600);
+      const mn = Math.floor((s % 3600) / 60);
+      return (neg ? "-" : "") + String(h).padStart(2, "0") + ":" + String(mn).padStart(2, "0");
+    }
+
+    /* ===== Weekend ===== */
+    function toggleWeekend(checkbox) {
+      const row = checkbox.closest("tr");
+      const inputs = row.querySelectorAll("input, select");
+      if (checkbox.checked) {
+        row.classList.add("weekend");
+        inputs.forEach(el => {
+          if (el === checkbox) return;
+          if (el.type === "checkbox") el.checked = false;
+          else el.value = "";
+          el.disabled = true;
+        });
+      } else {
+        row.classList.remove("weekend");
+        inputs.forEach(el => { if (el !== checkbox) el.disabled = false; });
+      }
+    }
+
+    /* ===== Plaques ===== */
+    function ensureAutreOption(selectEl) {
+      if (!Array.from(selectEl.options).some(o => o.value === "autre")) {
+        selectEl.appendChild(Object.assign(document.createElement("option"), { value: "autre", textContent: "Autre…" }));
+      }
+    }
+    function gererAutrePlaque(selectEl) {
+      const autreInput = selectEl.closest("td").querySelector(".plaque-autre");
+      if (!autreInput) return;
+      if (selectEl.value === "autre") {
+        autreInput.style.display = "block";
+        autreInput.value = "";
+        autreInput.focus();
+        autreInput.onblur = () => {
+          const val = autreInput.value.trim();
+          if (val) {
+            const newOpt = new Option(val, val);
+            const autreOpt = Array.from(selectEl.options).find(o => o.value === "autre");
+            if (autreOpt) selectEl.replaceChild(newOpt, autreOpt);
+            else selectEl.appendChild(newOpt);
+            selectEl.value = val;
+            ensureAutreOption(selectEl);
+          } else {
+            selectEl.value = "";
+          }
+          autreInput.style.display = "none";
+        };
+      } else {
+        autreInput.style.display = "none";
+      }
+    }
+
+    /* ===== Calculs ===== */
+    function recalc() {
+      let sum = 0, joursTravailles = 0;
+      let fraisChauffeur = 0, fraisAccompagnateur = 0;
+      const nomOuvrier = (document.getElementById("nom")?.value || "").trim().toLowerCase();
+
+      document.querySelectorAll("#heures tbody tr").forEach(tr => {
+        const debut   = tr.querySelector('input[name^="debut_"]')?.value    || "";
+        const fin     = tr.querySelector('input[name^="fin_"]')?.value      || "";
+        const aent    = tr.querySelector('input[name^="aent_"]')?.value     || "";
+        const totalEl = tr.querySelector('input[name^="total_"]');
+        const kms     = parseFloat(tr.querySelector('input[name^="kms_"]')?.value || 0) || 0;
+        const chauff  = (tr.querySelector('input[name^="chauffeur_"]')?.value || "").trim().toLowerCase();
+
+        let day = 0;
+        if (debut && fin) {
+          let diff = parseHHMM(fin) - parseHHMM(debut);
+          if (diff < 0) diff += 86400;
+          day = Math.max(0, diff + parseHHMM(aent) - 1800);
+        }
+        if (totalEl) totalEl.value = day ? toHHMM(day) : "";
+        if (day > 0) joursTravailles++;
+        sum += day;
+
+        if (kms > 0) {
+          const estChauffeur = !chauff || chauff === nomOuvrier;
+          if (estChauffeur) fraisChauffeur     += kms * (_config.tarif_km_chauffeur     || 0);
+          else              fraisAccompagnateur += kms * (_config.tarif_km_accompagnateur || 0);
+        }
+      });
+
+      const totalMoisEl = document.getElementById("totalMois");
+      if (totalMoisEl) totalMoisEl.value = sum ? toHHMM(sum) : "";
+
+      const sup = Math.max(0, sum - joursTravailles * (_config.heures_normales_par_jour * 3600));
+      const heuresSupEl = document.getElementById("heuresSup");
+      if (heuresSupEl) heuresSupEl.value = toHHMM(sup);
+
+      const totalFrais = fraisChauffeur + fraisAccompagnateur;
+      const fraisEl = document.getElementById("fraisKm");
+      const fraisRowEl = document.getElementById("fraisKmRow");
+      if (fraisEl && fraisRowEl) {
+        const tarifActif = (_config.tarif_km_chauffeur || 0) + (_config.tarif_km_accompagnateur || 0) > 0;
+        fraisRowEl.style.display = tarifActif ? "" : "none";
+        fraisEl.value = totalFrais > 0 ? totalFrais.toFixed(2) + " €" : "0.00 €";
+      }
+    }
+
+    /* ===== LocalStorage multi-mois ===== */
+    let _activeKey = null;
+
+    function getStorageKey() {
+      const mois  = document.getElementById("selectMois").value;
+      const annee = document.getElementById("annee").value || String(new Date().getFullYear());
+      return `heures_v2_${mois}_${annee}`;
+    }
+
+    function collectFormData() {
+      const data = {};
+      document.querySelectorAll("input, select").forEach(el => {
+        const key = el.name || el.id;
+        if (!key || el.type === "file") return;
+        data[key] = el.type === "checkbox" ? el.checked : el.value;
+      });
+      return data;
+    }
+
+    function restoreFormData(data) {
+      Object.entries(data).forEach(([key, val]) => {
+        const el = document.querySelector(`[name="${CSS.escape(key)}"], #${CSS.escape(key)}`);
+        if (!el) return;
+        if (el.type === "checkbox") el.checked = !!val;
+        else el.value = val;
+      });
+      document.querySelectorAll(".chk-weekend").forEach(chk => toggleWeekend(chk));
+      document.querySelectorAll('select[name^="plaque_"]').forEach(sel => ensureAutreOption(sel));
+      recalc();
+    }
+
+    function clearDailyData() {
+      document.querySelectorAll("#heures tbody tr").forEach(tr => {
+        tr.classList.remove("weekend");
+        tr.querySelectorAll("input").forEach(el => {
+          if (el.type === "checkbox") { el.checked = false; el.disabled = false; }
+          else if (!el.readOnly) { el.value = ""; el.disabled = false; }
+        });
+        tr.querySelectorAll("select").forEach(el => { el.value = ""; el.disabled = false; });
+        tr.querySelectorAll(".plaque-autre").forEach(el => el.style.display = "none");
+      });
+    }
+
+    function autoSave() {
+      if (_activeKey) localStorage.setItem(_activeKey, JSON.stringify(collectFormData()));
+    }
+
+    function switchMonth() {
+      if (_activeKey) localStorage.setItem(_activeKey, JSON.stringify(collectFormData()));
+      _activeKey = getStorageKey();
+      const nom    = document.getElementById("nom").value;
+      const prenom = document.getElementById("prenom").value;
+      clearDailyData();
+      const saved = localStorage.getItem(_activeKey);
+      if (saved) {
+        try { restoreFormData(JSON.parse(saved)); } catch {}
+      } else {
+        document.getElementById("nom").value    = nom;
+        document.getElementById("prenom").value = prenom;
+      }
+      updateDateStructure();
+    }
+
+    /* ===== Sauvegarde / Chargement JSON ===== */
+    function telecharger() {
+      const nom    = (document.getElementById("nom")?.value    || "nom").trim();
+      const prenom = (document.getElementById("prenom")?.value || "prenom").trim();
+      const mois   = document.getElementById("selectMois").selectedOptions[0].text;
+      const annee  = document.getElementById("annee").value || "";
+      const filename = `heures_mensuelles_${nom}_${prenom}_${mois}_${annee}.json`.replace(/\s+/g, "_");
+      const blob = new Blob([JSON.stringify(collectFormData(), null, 2)], { type: "application/json" });
+      const url  = URL.createObjectURL(blob);
+      const a = Object.assign(document.createElement("a"), { href: url, download: filename });
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function importer(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(reader.result);
+          if (data.selectMois !== undefined) document.getElementById("selectMois").value = data.selectMois;
+          if (data.annee      !== undefined) document.getElementById("annee").value      = data.annee;
+          _activeKey = getStorageKey();
+          restoreFormData(data);
+          updateDateStructure();
+          autoSave();
+          alert("Données chargées avec succès !");
+        } catch {
+          alert("Fichier invalide. Veuillez sélectionner un JSON exporté par ce formulaire.");
+        }
+        event.target.value = "";
+      };
+      reader.readAsText(file, "utf-8");
+    }
+
+    /* ===== Dates ===== */
+    function updateDateStructure() {
+      const mois  = parseInt(document.getElementById("selectMois").value);
+      const annee = parseInt(document.getElementById("annee").value);
+      const daysInMonth = new Date(annee, mois + 1, 0).getDate();
+      document.querySelectorAll("#heures tbody tr").forEach((row, index) => {
+        const day = index + 1;
+        if (day > daysInMonth) {
+          row.style.display = "none";
+        } else {
+          row.style.display = "table-row";
+          const isWeekend = [0, 6].includes(new Date(annee, mois, day).getDay());
+          const chk = row.querySelector(".chk-weekend");
+          if (chk && !chk.dataset.manual) {
+            chk.checked = isWeekend;
+            toggleWeekend(chk);
+          }
+        }
+      });
+      recalc();
+    }
+
+    function resetForm() {
+      if (confirm("Voulez-vous vraiment vider tout le tableau ?")) {
+        if (_activeKey) localStorage.removeItem(_activeKey);
+        location.reload();
+      }
+    }
+
+    /* ===== Export CSV ===== */
+    function exportCSV() {
+      let csv = "Jour;Chantier;Localite;Kms;Plaque;Debut;Fin;Aent;Total;Chauffeur\n";
+      document.querySelectorAll("#heures tbody tr").forEach((tr, i) => {
+        if (tr.style.display === "none") return;
+        const j = i + 1;
+        csv += [
+          j,
+          tr.querySelector(`[name="chantier_${j}"]`)?.value || "",
+          tr.querySelector(`[name="localite_${j}"]`)?.value || "",
+          tr.querySelector(`[name="kms_${j}"]`)?.value      || "",
+          tr.querySelector(`select[name="plaque_${j}"]`)?.value || "",
+          tr.querySelector(`[name="debut_${j}"]`)?.value    || "",
+          tr.querySelector(`[name="fin_${j}"]`)?.value      || "",
+          tr.querySelector(`[name="aent_${j}"]`)?.value     || "",
+          tr.querySelector(`[name="total_${j}"]`)?.value    || "",
+          tr.querySelector(`[name="chauffeur_${j}"]`)?.value || ""
+        ].join(";") + "\n";
+      });
+      const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+      const link = Object.assign(document.createElement("a"), {
+        href: URL.createObjectURL(blob),
+        download: `heures_${document.getElementById("nom").value}_${document.getElementById("selectMois").selectedOptions[0].text}.csv`
+      });
+      link.click();
+    }
+
+    /* ===== Email ===== */
+    function envoyerEmail() {
+      const nom    = document.getElementById("nom").value    || "[NOM]";
+      const prenom = document.getElementById("prenom").value || "[PRENOM]";
+      const mois   = document.getElementById("selectMois").selectedOptions[0].text;
+      const annee  = document.getElementById("annee").value;
+      const total  = document.getElementById("totalMois").value;
+      const sup    = document.getElementById("heuresSup").value;
+      const frais  = document.getElementById("fraisKm")?.value || "";
+      const tarifActif = (_config.tarif_km_chauffeur || 0) + (_config.tarif_km_accompagnateur || 0) > 0;
+
+      let corps = `Bonjour,\n\nVoici le résumé de mes heures pour ${mois} ${annee} :\n\n`;
+      corps += `Nom : ${nom}\nPrénom : ${prenom}\n`;
+      corps += `----------------------------------\n`;
+      corps += `TOTAL MENSUEL   : ${total}\n`;
+      corps += `Heures sup.     : ${sup}\n`;
+      if (tarifActif && frais) corps += `Frais km        : ${frais}\n`;
+      corps += `----------------------------------\n\n`;
+      corps += `(Note : Pensez à joindre le fichier de sauvegarde JSON ou CSV si nécessaire.)\n`;
+      corps += `\nCordialement,\n${prenom} ${nom}`;
+
+      const dest = _config.email_destinataire || "deutsch.isabelle@eecocur.be";
+      const objet = encodeURIComponent(`Heures Mensuelles - ${nom} ${prenom} - ${mois} ${annee}`);
+      window.location.href = `mailto:${dest}?subject=${objet}&body=${encodeURIComponent(corps)}`;
+    }
+
+    /* ===== Copie ligne précédente ===== */
+    function copyPrevious(j) {
+      ['chantier', 'localite', 'kms', 'plaque', 'chauffeur'].forEach(f => {
+        const val = document.querySelector(`[name="${f}_${j - 1}"]`)?.value || "";
+        const el  = document.querySelector(`[name="${f}_${j}"]`);
+        if (el) {
+          el.value = val;
+          if (f === 'plaque' && el.classList.contains('plaque-select')) gererAutrePlaque(el);
+        }
+      });
+      recalc();
+      autoSave();
+    }
+
+    function updateChauffeursDefault() {
+      const nom = (document.getElementById("nom").value || "").trim();
+      if (!nom) return;
+      document.querySelectorAll(".chauffeur-input").forEach(input => {
+        if (!input.value) input.value = nom;
+      });
+    }
+
+    /* ===== Raccourcis clavier ===== */
+    document.addEventListener("keydown", e => {
+      // Ctrl+S / Cmd+S → sauvegarder JSON
+      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+        e.preventDefault();
+        telecharger();
+      }
+      // Alt+← / Alt+→ → changer de mois
+      if (e.altKey && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+        e.preventDefault();
+        const sel    = document.getElementById("selectMois");
+        const anneeEl = document.getElementById("annee");
+        let mois  = parseInt(sel.value);
+        let annee = parseInt(anneeEl.value);
+        if (e.key === "ArrowLeft") {
+          if (mois === 0) { mois = 11; annee--; } else mois--;
+        } else {
+          if (mois === 11) { mois = 0; annee++; } else mois++;
+        }
+        sel.value      = mois;
+        anneeEl.value  = annee;
+        switchMonth();
+      }
+    });
+
+    /* ===== Écoutes & init ===== */
+    document.addEventListener("input", e => {
+      if (e.target.closest("#heures") || ["nom", "prenom", "annee"].includes(e.target.id)) {
+        if (["nom", "prenom"].includes(e.target.id)) updateChauffeursDefault();
+        recalc();
+        autoSave();
+      }
+    });
+
+    document.getElementById("selectMois").addEventListener("change", switchMonth);
+    document.getElementById("annee").addEventListener("input",  updateDateStructure);
+    document.getElementById("annee").addEventListener("change", switchMonth);
+
+    window.addEventListener("DOMContentLoaded", async () => {
+      document.getElementById("annee").value      = new Date().getFullYear();
+      document.getElementById("selectMois").value = new Date().getMonth();
+
+      const navTarget = localStorage.getItem("heures_nav");
+      if (navTarget) {
+        try {
+          const { mois, annee } = JSON.parse(navTarget);
+          document.getElementById("selectMois").value = mois;
+          document.getElementById("annee").value      = annee;
+        } catch {}
+        localStorage.removeItem("heures_nav");
+      }
+
+      _activeKey = getStorageKey();
+
+      if (!localStorage.getItem(_activeKey)) {
+        const legacy = localStorage.getItem("heures_data_v2");
+        if (legacy) {
+          localStorage.setItem(_activeKey, legacy);
+          localStorage.removeItem("heures_data_v2");
+        }
+      }
+
+      const saved = localStorage.getItem(_activeKey);
+      if (saved) {
+        try { restoreFormData(JSON.parse(saved)); } catch {}
+      }
+
+      await chargerConfig();
+      document.querySelectorAll('select[name^="plaque_"]').forEach(sel => ensureAutreOption(sel));
+      updateDateStructure();
+    });
+  </script>
+</body>
+
+</html>
