@@ -227,6 +227,7 @@
 
     <!-- Sélecteur de mois -->
     <div class="period-selector no-print">
+      <select id="selectOuvrier" onchange="changerOuvrierResume()" style="display:none; max-width:180px;"></select>
       <label style="font-size:12px; font-weight:600; color:var(--text-muted);">Période :</label>
       <select id="selectMois" onchange="changerPeriode()">
         <option value="0">Janvier</option>
@@ -324,6 +325,23 @@
         logoImg.style.display = "block";
       }
 
+      const team = [];
+      if (_config.nom_ouvrier_defaut || _config.prenom_ouvrier_defaut) {
+        team.push({ nom: _config.nom_ouvrier_defaut || "", prenom: _config.prenom_ouvrier_defaut || "", isDefault: true });
+      }
+      if (Array.isArray(_config.ouvriers)) {
+        _config.ouvriers.forEach(o => {
+          const exists = team.some(t => t.nom.toLowerCase() === (o.nom || "").toLowerCase() && t.prenom.toLowerCase() === (o.prenom || "").toLowerCase());
+          if (!exists && (o.nom || o.prenom)) team.push(o);
+        });
+      }
+
+      const ouvrierSel = document.getElementById("selectOuvrier");
+      if (team.length >= 2 && ouvrierSel) {
+        ouvrierSel.style.display = "inline-block";
+        ouvrierSel.innerHTML = team.map(o => `<option value="${escapeHTML(o.nom)}|${escapeHTML(o.prenom)}">👷 ${escapeHTML(o.nom)} ${escapeHTML(o.prenom)}</option>`).join("");
+      }
+
       const key = localStorage.getItem("heures_resume_key");
       if (key && key.startsWith("heures_v2_")) {
         const parts = key.split("_");
@@ -334,6 +352,10 @@
       document.getElementById("selectMois").value = curMois;
       document.getElementById("annee").value = curAnnee;
 
+      chargerResume();
+    }
+
+    function changerOuvrierResume() {
       chargerResume();
     }
 

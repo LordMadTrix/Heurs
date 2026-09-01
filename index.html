@@ -484,13 +484,17 @@
     </div>
 
     <div class="header-form">
+      <div class="field" id="profilField" style="display:none; min-width: 170px;">
+        <label for="selectOuvrier">👷 Équipe / Profil :</label>
+        <select id="selectOuvrier" onchange="surChangementOuvrier()"></select>
+      </div>
       <div class="field">
         <label for="nom">Nom :</label>
-        <input id="nom" type="text" placeholder="Nom de famille" />
+        <input id="nom" type="text" placeholder="Nom de famille" oninput="autoSave()" />
       </div>
       <div class="field">
         <label for="prenom">Prénom :</label>
-        <input id="prenom" type="text" placeholder="Prénom" />
+        <input id="prenom" type="text" placeholder="Prénom" oninput="autoSave()" />
       </div>
       <div class="field">
         <label for="selectMois">Période :</label>
@@ -579,8 +583,9 @@
       <button type="button" onclick="resetForm()" class="btn danger" style="margin-right: auto;">🗑️ Vider</button>
       <button type="button" onclick="envoyerEmail()" class="btn primary" id="btnEmail" style="background:#e11d48;">✉️ Envoyer par Email</button>
       <button type="button" onclick="ouvrirResume()" class="btn success">📊 Résumé</button>
+      <button type="button" onclick="telechargerPDFDirect()" class="btn primary" style="background:#4f46e5;">📄 PDF Direct (1 clic)</button>
       <button type="button" onclick="exportCSV()" class="btn secondary">📈 Excel / CSV</button>
-      <button type="button" onclick="window.print()" class="btn secondary">🖨️ PDF</button>
+      <button type="button" onclick="window.print()" class="btn secondary">🖨️ Imprimer</button>
       <button type="button" onclick="telechargerJSON()" class="btn primary">💾 Sauvegarder</button>
       <input type="file" id="importFile" accept=".json" style="display: none" onchange="importerJSON(event)" />
       <button type="button" onclick="document.getElementById('importFile').click()" class="btn secondary">📂 Charger</button>
@@ -593,6 +598,7 @@
     <datalist id="chantiers-list"></datalist>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="shared.js"></script>
   <script>
@@ -972,6 +978,102 @@
       showToast("Feuille sauvegardée en JSON et synchronisée sur Supabase !", "success");
     }
 
+    /* ===== Export PDF Direct (1 Clic avec html2pdf) ===== */
+    function telechargerPDFDirect() {
+      const sheet = document.querySelector(".sheet");
+      if (!sheet) return;
+
+      const nom = document.getElementById("nom").value.trim() || "Ouvrier";
+      const prenom = document.getElementById("prenom").value.trim() || "";
+      const moisIdx = parseInt(document.getElementById("selectMois").value);
+      const annee = document.getElementById("annee").value || new Date().getFullYear();
+      const moisNom = MOIS_NOMS[moisIdx] || "Mois";
+      const nomComplet = [nom, prenom].filter(Boolean).join("_");
+      const filename = `Feuille_Prestations_${nomComplet}_${moisNom}_${annee}.pdf`.replace(/[\s\/\\:*?"<>|]+/g, "_");
+
+      showToast("Génération du document PDF en cours…", "info", 2000);
+
+      const clone = sheet.cloneNode(true);
+      clone.querySelectorAll(".no-print").forEach(el => el.remove());
+      clone.querySelectorAll(".only-print").forEach(el => el.style.display = "flex");
+
+      const originalInputs = sheet.querySelectorAll("input, select");
+      const cloneInputs = clone.querySelectorAll("input, select");
+      originalInputs.forEach((inp, idx) => {
+        if (!cloneInputs[idx]) return;
+        if (inp.tagName === "SELECT") {
+          const selectedText = inp.selectedOptions?.[0]?.text || inp.value;
+          const span = document.createElement("span");
+          span.textContent = selectedText;
+          span.style.fontWeight = "600";
+          span.style.fontSize = "11px";
+          cloneInputs[idx].parentNode?.replaceChild(span, cloneInputs[idx]);
+        } else {
+          cloneInputs[idx].setAttribute("value", inp.value);
+        }
+      });
+
+      const opt = {
+        margin: [8, 6, 8, 6],
+        filename: filename,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      html2pdf().set(opt).from(clone).save().then(() => {
+        showToast("✅ PDF téléchargé avec succès !", "success");
+      }).catch(err => {
+        console.warn("Erreur export PDF direct, bascule impression:", err);
+        window.print();
+      });
+    }
+
+    /* ===== Multi-profils / Équipe ===== */
+    function initProfilSelector() {
+      const select = document.getElementById("selectOuvrier");
+      const container = document.getElementById("profilField");
+      if (!select || !container) return;
+
+      const team = [];
+      if (_config.nom_ouvrier_defaut || _config.prenom_ouvrier_defaut) {
+        team.push({ nom: _config.nom_ouvrier_defaut || "", prenom: _config.prenom_ouvrier_defaut || "", isDefault: true });
+      }
+
+      if (Array.isArray(_config.ouvriers)) {
+        _config.ouvriers.forEach(o => {
+          const exists = team.some(t => t.nom.toLowerCase() === (o.nom || "").toLowerCase() && t.prenom.toLowerCase() === (o.prenom || "").toLowerCase());
+          if (!exists && (o.nom || o.prenom)) team.push(o);
+        });
+      }
+
+      if (team.length >= 2) {
+        container.style.display = "block";
+        const curNom = document.getElementById("nom").value.trim().toLowerCase();
+        const curPrenom = document.getElementById("prenom").value.trim().toLowerCase();
+
+        select.innerHTML = team.map(o => {
+          const val = `${o.nom}|${o.prenom}`;
+          const isSelected = (curNom === o.nom.toLowerCase() && curPrenom === o.prenom.toLowerCase());
+          const label = `${o.nom} ${o.prenom}${o.isDefault ? " (Principal)" : ""}`;
+          return `<option value="${escapeHTML(val)}"${isSelected ? " selected" : ""}>${escapeHTML(label)}</option>`;
+        }).join("");
+      } else {
+        container.style.display = "none";
+      }
+    }
+
+    function surChangementOuvrier() {
+      const select = document.getElementById("selectOuvrier");
+      if (!select || !select.value) return;
+
+      const [nom, prenom] = select.value.split("|");
+      document.getElementById("nom").value = nom || "";
+      document.getElementById("prenom").value = prenom || "";
+      switchMonth();
+      showToast(`Profil actif : ${nom} ${prenom}`, "info", 2000);
+    }
+
     function importerJSON(event) {
       const file = event.target.files?.[0];
       if (!file) return;
@@ -1204,6 +1306,8 @@
         }
         updateDateStructure();
       }
+
+      initProfilSelector();
     });
 
     window.addEventListener("heures-synced", () => {

@@ -304,6 +304,9 @@
     <!-- Filtres -->
     <div class="filter-bar no-print">
       <input type="text" id="searchInput" placeholder="🔍 Rechercher par nom, prénom ou mois…" oninput="renderTable()" />
+      <select id="filterOuvrier" onchange="renderTable()" style="max-width: 200px;">
+        <option value="">Tous les ouvriers</option>
+      </select>
       <select id="filterAnnee" onchange="renderTable()">
         <option value="">Toutes les années</option>
       </select>
@@ -380,9 +383,14 @@
       const wrapper = document.getElementById("tableWrapper");
       const search = (document.getElementById("searchInput")?.value || "").toLowerCase().trim();
       const anneeFilter = document.getElementById("filterAnnee")?.value || "";
+      const ouvrierFilter = (document.getElementById("filterOuvrier")?.value || "").toLowerCase().trim();
 
       const filtered = allEntries.filter(e => {
         if (anneeFilter && e.annee !== anneeFilter) return false;
+        if (ouvrierFilter) {
+          const full = `${e.nom} ${e.prenom}`.toLowerCase().trim();
+          if (full !== ouvrierFilter) return false;
+        }
         if (search) {
           const matchNom = e.nom.toLowerCase().includes(search);
           const matchPrenom = e.prenom.toLowerCase().includes(search);
@@ -448,18 +456,28 @@
     function initFilters() {
       const filterSel = document.getElementById("filterAnnee");
       const chartSel = document.getElementById("chartAnnee");
+      const ouvrierSel = document.getElementById("filterOuvrier");
       const years = new Set();
+      const ouvriers = new Set();
       years.add(new Date().getFullYear());
 
       allEntries.forEach(e => {
         const y = parseInt(e.annee);
         if (y > 2000 && y < 2100) years.add(y);
+        const name = `${e.nom} ${e.prenom}`.trim();
+        if (name && name !== "—") ouvriers.add(name);
       });
 
       const sortedYears = [...years].sort((a, b) => b - a);
+      const sortedOuvriers = [...ouvriers].sort();
 
       filterSel.innerHTML = '<option value="">Toutes les années</option>' +
         sortedYears.map(y => `<option value="${y}">${y}</option>`).join("");
+
+      if (ouvrierSel) {
+        ouvrierSel.innerHTML = '<option value="">Tous les ouvriers</option>' +
+          sortedOuvriers.map(o => `<option value="${escapeHTML(o.toLowerCase())}">👷 ${escapeHTML(o)}</option>`).join("");
+      }
 
       chartSel.innerHTML = sortedYears.map(y => `<option value="${y}">${y}</option>`).join("");
     }

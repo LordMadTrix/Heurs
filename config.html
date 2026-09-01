@@ -230,12 +230,16 @@
       <a href="index.html" class="btn secondary">← Saisie des heures</a>
     </div>
 
-    <!-- Identité de l'Ouvrier -->
+    <!-- Identité de l'Ouvrier & Équipe (Multi-profils) -->
     <div class="card">
-      <h2>Ouvrier / Collaborateur (Par Défaut)</h2>
+      <h2>👷 Gestion de l'équipe &amp; Profils d'Ouvriers</h2>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">
+        Gérez les membres de votre équipe pour pouvoir basculer facilement entre leurs feuilles d'heures depuis la page de saisie.
+      </p>
+
       <div class="two-cols">
         <div class="field">
-          <label for="cfg-nom-ouvrier">Nom</label>
+          <label for="cfg-nom-ouvrier">Nom de l'ouvrier principal (par défaut)</label>
           <input type="text" id="cfg-nom-ouvrier" placeholder="Ex : Petit" />
         </div>
         <div class="field">
@@ -243,7 +247,17 @@
           <input type="text" id="cfg-prenom-ouvrier" placeholder="Ex : Sébastien" />
         </div>
       </div>
-      <span class="hint" style="margin-top:6px; display:block;">Ces valeurs seront pré-remplies automatiquement sur toutes les nouvelles feuilles d'heures.</span>
+
+      <div style="margin-top:16px; border-top:1px solid var(--border); padding-top:14px;">
+        <label style="font-weight:600; font-size:13px; color:var(--text-main); margin-bottom:8px; display:block;">Membres de l'équipe enregistrés</label>
+        <div id="ouvriers-list" class="tag-list" style="margin-bottom:10px;"></div>
+
+        <div class="two-cols" style="gap:8px;">
+          <input type="text" id="new-ouvrier-nom" placeholder="Nom (ex : Dupont)" />
+          <input type="text" id="new-ouvrier-prenom" placeholder="Prénom (ex : Marc)" />
+        </div>
+        <button type="button" class="btn secondary sm" onclick="ajouterOuvrier()" style="margin-top:8px;">+ Ajouter à l'équipe</button>
+      </div>
     </div>
 
     <!-- Entreprise & Logo -->
@@ -434,6 +448,7 @@
       document.getElementById("cfg-km-chauffeur").value     = cfg.tarif_km_chauffeur > 0 ? cfg.tarif_km_chauffeur : "";
       document.getElementById("cfg-km-accompagnateur").value = cfg.tarif_km_accompagnateur > 0 ? cfg.tarif_km_accompagnateur : "";
       document.getElementById("cfg-km-ar").checked           = (cfg.km_aller_retour !== false);
+      renderOuvriersList();
       renderTags("plaques-list",   cfg.plaques   || [], "purple", supprimerPlaque);
       renderTags("chantiers-list", cfg.chantiers || [], "green",  supprimerChantier);
       
@@ -553,6 +568,47 @@
       currentLogoBase64 = "";
       renderLogoPreview();
       showToast("Logo retiré", "info");
+    }
+
+    function renderOuvriersList() {
+      const el = document.getElementById("ouvriers-list");
+      const list = cfg.ouvriers || [];
+      if (!list.length) {
+        el.innerHTML = '<span class="empty-hint">Aucun profil supplémentaire enregistré.</span>';
+        return;
+      }
+      el.innerHTML = list.map((ouvrier, i) => `
+        <span class="tag purple">
+          👷 ${escapeHTML(ouvrier.nom)} ${escapeHTML(ouvrier.prenom)}
+          <button type="button" class="tag-remove" onclick="supprimerOuvrier(${i})" title="Supprimer">×</button>
+        </span>`).join("");
+    }
+
+    function ajouterOuvrier() {
+      const nomInp = document.getElementById("new-ouvrier-nom");
+      const prenomInp = document.getElementById("new-ouvrier-prenom");
+      const nom = nomInp.value.trim();
+      const prenom = prenomInp.value.trim();
+      if (!nom && !prenom) return;
+
+      if (!cfg.ouvriers) cfg.ouvriers = [];
+      const exists = cfg.ouvriers.some(o => o.nom.toLowerCase() === nom.toLowerCase() && o.prenom.toLowerCase() === prenom.toLowerCase());
+      if (!exists) {
+        cfg.ouvriers.push({ nom, prenom });
+        renderOuvriersList();
+        showToast(`Ouvrier ${nom} ${prenom} ajouté à l'équipe !`, "success");
+      } else {
+        showToast("Cet ouvrier est déjà dans la liste.", "info");
+      }
+      nomInp.value = "";
+      prenomInp.value = "";
+      nomInp.focus();
+    }
+
+    function supprimerOuvrier(index) {
+      if (!cfg.ouvriers) return;
+      cfg.ouvriers.splice(index, 1);
+      renderOuvriersList();
     }
 
     function renderTags(containerId, items, color, removeFn) {

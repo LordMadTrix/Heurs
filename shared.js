@@ -35,6 +35,9 @@ const DEFAULT_CONFIG = {
   logo_entreprise: "",
   nom_ouvrier_defaut: "Petit",
   prenom_ouvrier_defaut: "Sébastien",
+  ouvriers: [
+    { nom: "Petit", prenom: "Sébastien" }
+  ],
   gemini_api_key: ""
 };
 
