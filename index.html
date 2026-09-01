@@ -918,13 +918,18 @@
     function switchMonth() {
       if (_activeKey) {
         const data = collectFormData();
-        localStorage.setItem(_activeKey, JSON.stringify(data));
-        cloudSaveFeuille(_activeKey, data);
+        const hasData = Object.keys(data).some(k => (k.startsWith("debut_") || k.startsWith("chantier_") || k.startsWith("kms_")) && data[k]);
+        if (hasData) {
+          localStorage.setItem(_activeKey, JSON.stringify(data));
+          cloudSaveFeuille(_activeKey, data);
+        }
       }
-      _activeKey = getStorageKey(
-        document.getElementById("selectMois").value,
-        document.getElementById("annee").value
-      );
+
+      const mois = document.getElementById("selectMois").value;
+      const annee = document.getElementById("annee").value;
+      localStorage.setItem("heures_active_periode", JSON.stringify({ mois, annee }));
+
+      _activeKey = getStorageKey(mois, annee);
 
       const nom = document.getElementById("nom").value;
       const prenom = document.getElementById("prenom").value;
@@ -1379,24 +1384,64 @@
         datalist.innerHTML = _config.chantiers.map(c => `<option value="${escapeHTML(c)}"></option>`).join("");
       }
 
-      const now = new Date();
-      document.getElementById("annee").value = now.getFullYear();
-      document.getElementById("selectMois").value = now.getMonth();
+      // 1. Résolution intelligente du mois et de l'année à afficher
+      let targetMois = null;
+      let targetAnnee = null;
 
+      // A. Navigation explicite (depuis Historique, Résumé ou Import IA)
       const navTarget = localStorage.getItem("heures_nav");
       if (navTarget) {
         try {
-          const { mois, annee } = JSON.parse(navTarget);
-          if (mois !== undefined) document.getElementById("selectMois").value = mois;
-          if (annee !== undefined) document.getElementById("annee").value = annee;
+          const parsed = JSON.parse(navTarget);
+          if (parsed.mois !== undefined) targetMois = String(parsed.mois);
+          if (parsed.annee !== undefined) targetAnnee = String(parsed.annee);
         } catch (e) {}
         localStorage.removeItem("heures_nav");
       }
 
-      _activeKey = getStorageKey(
-        document.getElementById("selectMois").value,
-        document.getElementById("annee").value
-      );
+      // B. Dernière période active consultée
+      if (targetMois === null) {
+        const lastPeriod = localStorage.getItem("heures_active_periode");
+        if (lastPeriod) {
+          try {
+            const parsed = JSON.parse(lastPeriod);
+            if (parsed.mois !== undefined) targetMois = String(parsed.mois);
+            if (parsed.annee !== undefined) targetAnnee = String(parsed.annee);
+          } catch (e) {}
+        }
+      }
+
+      // C. Si aucune période mémorisée, trouver la feuille la plus récente enregistrée
+      if (targetMois === null) {
+        let latestTime = -1;
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.startsWith("heures_v2_")) {
+            const parts = k.split("_");
+            const m = parseInt(parts[2]);
+            const y = parseInt(parts[3]);
+            if (!isNaN(m) && !isNaN(y)) {
+              const timeVal = y * 12 + m;
+              if (timeVal > latestTime) {
+                latestTime = timeVal;
+                targetMois = String(m);
+                targetAnnee = String(y);
+              }
+            }
+          }
+        }
+      }
+
+      // D. Fallback sur le mois courant
+      const now = new Date();
+      if (targetMois === null) targetMois = String(now.getMonth());
+      if (targetAnnee === null) targetAnnee = String(now.getFullYear());
+
+      document.getElementById("selectMois").value = targetMois;
+      document.getElementById("annee").value = targetAnnee;
+      localStorage.setItem("heures_active_periode", JSON.stringify({ mois: targetMois, annee: targetAnnee }));
+
+      _activeKey = getStorageKey(targetMois, targetAnnee);
 
       populatePlaques();
 
@@ -1416,6 +1461,18 @@
       }
 
       initProfilSelector();
+
+      // Récupération directe depuis Supabase au chargement
+      const client = getSupabaseClient();
+      if (client && _activeKey) {
+        try {
+          const { data: row, error } = await client.from("feuilles_heures").select("data").eq("key", _activeKey).maybeSingle();
+          if (!error && row && row.data) {
+            localStorage.setItem(_activeKey, JSON.stringify(row.data));
+            restoreFormData(row.data);
+          }
+        } catch (e) {}
+      }
     });
 
     window.addEventListener("heures-synced", () => {
@@ -1423,7 +1480,6 @@
         const saved = localStorage.getItem(_activeKey);
         if (saved) {
           try {
-            // Recharger les données si le formulaire était vide ou non modifié
             const currentTotal = document.getElementById("totalMois")?.value;
             if (!currentTotal || currentTotal === "00:00") {
               restoreFormData(JSON.parse(saved));
