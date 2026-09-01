@@ -385,6 +385,7 @@
       document.getElementById("resTotal").textContent = data.totalMois || "00:00";
       document.getElementById("resSup").textContent = data.heuresSup || "00:00";
 
+      const kmMult = _config.km_aller_retour !== false ? 2 : 1;
       let jours = 0, kmTotal = 0, kmChauffeur = 0, kmAccom = 0;
       const counts = { travail: 0, ferie: 0, conge: 0, maladie: 0, intemperies: 0, rcr: 0 };
 
@@ -397,7 +398,7 @@
           jours++;
         }
 
-        const km = parseFloat(data[`kms_${j}`] || 0) || 0;
+        const km = (parseFloat(data[`kms_${j}`] || 0) || 0) * kmMult;
         const chauff = (data[`chauffeur_${j}`] || "").trim();
 
         if (km > 0) {
@@ -411,7 +412,7 @@
       }
 
       document.getElementById("resJours").textContent = `${jours} j`;
-      document.getElementById("resKmTotal").textContent = `${kmTotal.toFixed(1)} km`;
+      document.getElementById("resKmTotal").textContent = `${kmTotal.toFixed(1)} km${kmMult > 1 ? " (A/R)" : ""}`;
 
       document.getElementById("cntTravail").textContent = `${jours} j`;
       document.getElementById("cntFerie").textContent = `${counts.ferie} j`;

@@ -30,6 +30,7 @@ const DEFAULT_CONFIG = {
   heures_normales_par_jour: 8,
   tarif_km_chauffeur: 0,
   tarif_km_accompagnateur: 0,
+  km_aller_retour: true,
   nom_entreprise: "",
   logo_entreprise: "",
   nom_ouvrier_defaut: "Petit",

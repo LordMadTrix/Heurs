@@ -302,6 +302,16 @@
           <span class="hint">Quand vous êtes passager</span>
         </div>
       </div>
+
+      <div class="field" style="margin-top:14px; background:var(--bg-alt); padding:10px 12px; border-radius:var(--radius-sm); border:1px solid var(--border);">
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin-bottom:0;">
+          <input type="checkbox" id="cfg-km-ar" checked style="width:18px; height:18px; cursor:pointer; accent-color:var(--primary);" />
+          <span><strong>Calcul Aller-Retour automatique (× 2)</strong></span>
+        </label>
+        <span class="hint" style="margin-left:26px; display:block; margin-top:3px;">
+          Permet de noter uniquement la distance aller sur chaque jour (ex : 25 km), l'application double automatiquement pour comptabiliser l'aller + le retour (50 km).
+        </span>
+      </div>
     </div>
 
     <!-- Véhicules -->
@@ -423,6 +433,7 @@
       document.getElementById("cfg-heures").value         = cfg.heures_normales_par_jour ?? 8;
       document.getElementById("cfg-km-chauffeur").value     = cfg.tarif_km_chauffeur > 0 ? cfg.tarif_km_chauffeur : "";
       document.getElementById("cfg-km-accompagnateur").value = cfg.tarif_km_accompagnateur > 0 ? cfg.tarif_km_accompagnateur : "";
+      document.getElementById("cfg-km-ar").checked           = (cfg.km_aller_retour !== false);
       renderTags("plaques-list",   cfg.plaques   || [], "purple", supprimerPlaque);
       renderTags("chantiers-list", cfg.chantiers || [], "green",  supprimerChantier);
       
@@ -604,6 +615,7 @@
       cfg.heures_normales_par_jour = parseFloat(document.getElementById("cfg-heures").value) || 8;
       cfg.tarif_km_chauffeur       = parseFloat(document.getElementById("cfg-km-chauffeur").value) || 0;
       cfg.tarif_km_accompagnateur  = parseFloat(document.getElementById("cfg-km-accompagnateur").value) || 0;
+      cfg.km_aller_retour          = document.getElementById("cfg-km-ar").checked;
       cfg.gemini_api_key           = document.getElementById("cfg-gemini").value.trim();
       cfg.logo_entreprise          = currentLogoBase64;
     }

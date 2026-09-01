@@ -753,11 +753,13 @@
         sum += daySec;
 
         if (kms > 0) {
+          const kmMult = _config.km_aller_retour !== false ? 2 : 1;
+          const kmsTotalJour = kms * kmMult;
           const estChauff = isChauffeur(chauff, nom, prenom);
           if (estChauff) {
-            fraisChauffeur += kms * (_config.tarif_km_chauffeur || 0);
+            fraisChauffeur += kmsTotalJour * (_config.tarif_km_chauffeur || 0);
           } else {
-            fraisAccompagnateur += kms * (_config.tarif_km_accompagnateur || 0);
+            fraisAccompagnateur += kmsTotalJour * (_config.tarif_km_accompagnateur || 0);
           }
         }
 
@@ -784,6 +786,7 @@
       if (fraisEl && fraisRowEl) {
         const tarifActif = (_config.tarif_km_chauffeur || 0) + (_config.tarif_km_accompagnateur || 0) > 0;
         fraisRowEl.style.display = tarifActif ? "" : "none";
+        const isAR = _config.km_aller_retour !== false;
         fraisEl.value = totalFrais > 0 ? totalFrais.toFixed(2) + " €" : "0.00 €";
       }
 
@@ -1138,6 +1141,14 @@
       buildTableRows();
 
       _config = await loadConfig();
+
+      if (_config.km_aller_retour !== false) {
+        const kmHeader = document.querySelector("th.col-kms");
+        if (kmHeader) {
+          kmHeader.textContent = "Kms (A/R)";
+          kmHeader.title = "Distance aller doublée automatiquement pour comptabiliser l'aller + le retour (×2)";
+        }
+      }
 
       // Logo d'entreprise
       if (_config.logo_entreprise) {

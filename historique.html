@@ -316,8 +316,10 @@
   <script src="shared.js"></script>
   <script>
     let allEntries = [];
+    let _config = {};
 
     function loadAllEntries() {
+      const kmMult = _config.km_aller_retour !== false ? 2 : 1;
       const entries = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
@@ -333,7 +335,7 @@
           let joursTravailles = 0;
           for (let j = 1; j <= 31; j++) {
             const km = parseFloat(data[`kms_${j}`] || 0);
-            if (!isNaN(km)) kmTotal += km;
+            if (!isNaN(km)) kmTotal += (km * kmMult);
 
             const tot = data[`total_${j}`];
             if (tot && tot !== "00:00" && tot !== "0:00") {
@@ -511,7 +513,8 @@
 
     function exporterAnneeCSV() {
       const annee = document.getElementById("chartAnnee").value || new Date().getFullYear();
-      let csv = "Mois;Nom;Prenom;Jours Travailles;Total Heures;Heures Sup;Kilometres\n";
+      const kmMult = _config.km_aller_retour !== false ? 2 : 1;
+      let csv = "Mois;Nom;Prenom;Jours Travailles;Total Heures;Heures Sup;Kilometres (A/R)\n";
 
       for (let m = 0; m <= 11; m++) {
         const key = getStorageKey(m, annee);
@@ -521,7 +524,7 @@
             const data = JSON.parse(raw);
             let km = 0, jCount = 0;
             for (let j = 1; j <= 31; j++) {
-              km += parseFloat(data[`kms_${j}`] || 0) || 0;
+              km += (parseFloat(data[`kms_${j}`] || 0) || 0) * kmMult;
               if (data[`total_${j}`] && data[`total_${j}`] !== "00:00") jCount++;
             }
             csv += [
@@ -546,7 +549,8 @@
       showToast(`Export annuel ${annee} généré !`, "success");
     }
 
-    function initHistory() {
+    async function initHistory() {
+      _config = await loadConfig();
       allEntries = loadAllEntries();
       initFilters();
       renderChart();
