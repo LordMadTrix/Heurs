@@ -48,9 +48,18 @@ const DEFAULT_SUPABASE_KEY = "sb_publishable_XtDomCqVldj_nhJp21fzaQ_ReK3bdFt";
 let _supabaseClient = null;
 let _cloudSyncTimeout = null;
 
+function cleanSupabaseUrl(url) {
+  if (!url) return "";
+  let cleaned = String(url).trim();
+  cleaned = cleaned.replace(/\/rest\/v1\/?$/i, "");
+  cleaned = cleaned.replace(/\/+$/, "");
+  return cleaned;
+}
+
 function getSupabaseCredentials() {
+  const rawUrl = localStorage.getItem("supabase_url") || DEFAULT_SUPABASE_URL;
   return {
-    url: (localStorage.getItem("supabase_url") || DEFAULT_SUPABASE_URL).trim(),
+    url: cleanSupabaseUrl(rawUrl),
     key: (localStorage.getItem("supabase_key") || DEFAULT_SUPABASE_KEY).trim()
   };
 }

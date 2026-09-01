@@ -448,8 +448,11 @@
       statusEl.innerHTML = "⏳ Test en cours...";
       statusEl.style.color = "var(--text-muted)";
 
-      // Enregistrer temporairement pour le test
-      const url = document.getElementById("cfg-sb-url").value.trim();
+      // Nettoyer l'URL (retirer /rest/v1 si présent)
+      const rawUrl = document.getElementById("cfg-sb-url").value.trim();
+      const url = cleanSupabaseUrl(rawUrl);
+      document.getElementById("cfg-sb-url").value = url;
+
       const key = document.getElementById("cfg-sb-key").value.trim();
       if (url) localStorage.setItem("supabase_url", url);
       if (key) localStorage.setItem("supabase_key", key);
@@ -608,7 +611,10 @@
     async function sauvegarder() {
       lireFormulaire();
       
-      const sbUrl = document.getElementById("cfg-sb-url").value.trim();
+      const rawUrl = document.getElementById("cfg-sb-url").value.trim();
+      const sbUrl = cleanSupabaseUrl(rawUrl);
+      document.getElementById("cfg-sb-url").value = sbUrl;
+
       const sbKey = document.getElementById("cfg-sb-key").value.trim();
       if (sbUrl) localStorage.setItem("supabase_url", sbUrl);
       if (sbKey) localStorage.setItem("supabase_key", sbKey);
