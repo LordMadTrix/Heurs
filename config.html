@@ -230,6 +230,22 @@
       <a href="index.html" class="btn secondary">← Saisie des heures</a>
     </div>
 
+    <!-- Identité de l'Ouvrier -->
+    <div class="card">
+      <h2>Ouvrier / Collaborateur (Par Défaut)</h2>
+      <div class="two-cols">
+        <div class="field">
+          <label for="cfg-nom-ouvrier">Nom</label>
+          <input type="text" id="cfg-nom-ouvrier" placeholder="Ex : Petit" />
+        </div>
+        <div class="field">
+          <label for="cfg-prenom-ouvrier">Prénom</label>
+          <input type="text" id="cfg-prenom-ouvrier" placeholder="Ex : Sébastien" />
+        </div>
+      </div>
+      <span class="hint" style="margin-top:6px; display:block;">Ces valeurs seront pré-remplies automatiquement sur toutes les nouvelles feuilles d'heures.</span>
+    </div>
+
     <!-- Entreprise & Logo -->
     <div class="card">
       <h2>Entreprise &amp; Identité Visuelle</h2>
@@ -331,6 +347,38 @@
       </div>
     </div>
 
+    <!-- Base de données & Synchronisation Supabase -->
+    <div class="card">
+      <h2>☁️ Base de Données &amp; Synchronisation Cloud (Supabase)</h2>
+      <p style="font-size:12px; color:var(--text-muted); margin: -6px 0 14px;">
+        Synchronise automatiquement vos heures et paramètres en temps réel entre votre smartphone et votre ordinateur grâce à votre base de données gratuite Supabase.
+      </p>
+
+      <div class="field">
+        <label for="cfg-sb-url">URL du projet Supabase</label>
+        <input type="text" id="cfg-sb-url" placeholder="https://xwjgjwnzafdjrabgvpcy.supabase.co" />
+      </div>
+
+      <div class="field">
+        <label for="cfg-sb-key">Clé API Publishable / Anon</label>
+        <div style="display:flex; gap:8px;">
+          <input type="password" id="cfg-sb-key" placeholder="sb_publishable_..." autocomplete="off" />
+          <button class="btn secondary sm" type="button" onclick="toggleSbKeyVis()">👁</button>
+        </div>
+        <span class="hint">Clé publique (Publishable) autorisée pour les connexions directes du navigateur.</span>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; align-items:center;">
+        <button type="button" class="btn secondary sm" onclick="testerConnexionSupabase()">🧪 Tester la connexion</button>
+        <button type="button" class="btn primary sm" onclick="forcerSynchroCloud()">🔄 Synchroniser tout maintenant</button>
+        <span id="sbConnectionStatus" style="font-size:12px; font-weight:600; margin-left:6px;"></span>
+      </div>
+
+      <div class="cloud-info-box" id="cloudStatsBox">
+        <span>📦 <strong>Statut des données :</strong> <span id="cloudFeuillesCount">Calcul en cours...</span></span>
+      </div>
+    </div>
+
     <!-- Sauvegarde & Restauration Globale -->
     <div class="card">
       <h2>Sauvegarde Totale &amp; Archivage</h2>
@@ -354,6 +402,7 @@
 
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="shared.js"></script>
   <script>
     let cfg = { ...DEFAULT_CONFIG };
@@ -367,17 +416,86 @@
     }
 
     function appliquerUI() {
-      document.getElementById("cfg-entreprise").value = cfg.nom_entreprise || "";
-      document.getElementById("cfg-email").value      = cfg.email_destinataire || "";
-      document.getElementById("cfg-heures").value     = cfg.heures_normales_par_jour ?? 8;
+      document.getElementById("cfg-nom-ouvrier").value    = cfg.nom_ouvrier_defaut || "";
+      document.getElementById("cfg-prenom-ouvrier").value = cfg.prenom_ouvrier_defaut || "";
+      document.getElementById("cfg-entreprise").value     = cfg.nom_entreprise || "";
+      document.getElementById("cfg-email").value          = cfg.email_destinataire || "";
+      document.getElementById("cfg-heures").value         = cfg.heures_normales_par_jour ?? 8;
       document.getElementById("cfg-km-chauffeur").value     = cfg.tarif_km_chauffeur > 0 ? cfg.tarif_km_chauffeur : "";
       document.getElementById("cfg-km-accompagnateur").value = cfg.tarif_km_accompagnateur > 0 ? cfg.tarif_km_accompagnateur : "";
       renderTags("plaques-list",   cfg.plaques   || [], "purple", supprimerPlaque);
       renderTags("chantiers-list", cfg.chantiers || [], "green",  supprimerChantier);
-      const geminiKey = localStorage.getItem("gemini_api_key") || "";
+      
+      const geminiKey = cfg.gemini_api_key || localStorage.getItem("gemini_api_key") || "";
       document.getElementById("cfg-gemini").value = geminiKey;
 
+      // Supabase settings
+      const sbCreds = getSupabaseCredentials();
+      document.getElementById("cfg-sb-url").value = sbCreds.url;
+      document.getElementById("cfg-sb-key").value = sbCreds.key;
+
       renderLogoPreview();
+      actualiserStatsCloud();
+    }
+
+    function toggleSbKeyVis() {
+      const i = document.getElementById('cfg-sb-key');
+      i.type = (i.type === 'password' ? 'text' : 'password');
+    }
+
+    async function testerConnexionSupabase() {
+      const statusEl = document.getElementById("sbConnectionStatus");
+      statusEl.innerHTML = "⏳ Test en cours...";
+      statusEl.style.color = "var(--text-muted)";
+
+      // Enregistrer temporairement pour le test
+      const url = document.getElementById("cfg-sb-url").value.trim();
+      const key = document.getElementById("cfg-sb-key").value.trim();
+      if (url) localStorage.setItem("supabase_url", url);
+      if (key) localStorage.setItem("supabase_key", key);
+      resetSupabaseClient();
+
+      const result = await testSupabaseConnection();
+      if (result.ok) {
+        statusEl.innerHTML = "✅ Connecté avec succès !";
+        statusEl.style.color = "var(--success)";
+        showToast("Connexion à Supabase validée !", "success");
+        actualiserStatsCloud();
+      } else {
+        statusEl.innerHTML = "❌ Erreur de connexion";
+        statusEl.style.color = "var(--danger)";
+        showToast("Erreur : " + result.message, "error", 5000);
+      }
+    }
+
+    async function forcerSynchroCloud() {
+      lireFormulaire();
+      sauvegarder();
+      await cloudFullSync(true);
+      actualiserStatsCloud();
+    }
+
+    async function actualiserStatsCloud() {
+      const statsEl = document.getElementById("cloudFeuillesCount");
+      if (!statsEl) return;
+
+      let localCount = 0;
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith("heures_v2_")) localCount++;
+      }
+
+      statsEl.innerHTML = `${localCount} feuille(s) en local.`;
+
+      const client = getSupabaseClient();
+      if (client) {
+        try {
+          const { count, error } = await client.from("feuilles_heures").select("*", { count: 'exact', head: true });
+          if (!error && count !== null) {
+            statsEl.innerHTML = `${localCount} feuille(s) en local &nbsp;·&nbsp; <strong>${count} feuille(s) sur Supabase</strong> ☁️`;
+          }
+        } catch (e) {}
+      }
     }
 
     function renderLogoPreview() {
@@ -476,24 +594,34 @@
     }
 
     function lireFormulaire() {
+      cfg.nom_ouvrier_defaut       = document.getElementById("cfg-nom-ouvrier").value.trim();
+      cfg.prenom_ouvrier_defaut    = document.getElementById("cfg-prenom-ouvrier").value.trim();
       cfg.nom_entreprise           = document.getElementById("cfg-entreprise").value.trim();
       cfg.email_destinataire       = document.getElementById("cfg-email").value.trim();
       cfg.heures_normales_par_jour = parseFloat(document.getElementById("cfg-heures").value) || 8;
       cfg.tarif_km_chauffeur       = parseFloat(document.getElementById("cfg-km-chauffeur").value) || 0;
       cfg.tarif_km_accompagnateur  = parseFloat(document.getElementById("cfg-km-accompagnateur").value) || 0;
+      cfg.gemini_api_key           = document.getElementById("cfg-gemini").value.trim();
       cfg.logo_entreprise          = currentLogoBase64;
     }
 
-    function sauvegarder() {
+    async function sauvegarder() {
       lireFormulaire();
-      saveConfig(cfg);
-      const geminiKey = document.getElementById("cfg-gemini").value.trim();
-      if (geminiKey) {
-        localStorage.setItem("gemini_api_key", geminiKey);
+      
+      const sbUrl = document.getElementById("cfg-sb-url").value.trim();
+      const sbKey = document.getElementById("cfg-sb-key").value.trim();
+      if (sbUrl) localStorage.setItem("supabase_url", sbUrl);
+      if (sbKey) localStorage.setItem("supabase_key", sbKey);
+      resetSupabaseClient();
+
+      const ok = await saveConfig(cfg);
+
+      if (ok) {
+        showToast("Paramètres enregistrés et synchronisés sur Supabase !", "success");
       } else {
-        localStorage.removeItem("gemini_api_key");
+        showToast("Paramètres enregistrés en local (Cloud hors-ligne)", "warning");
       }
-      showToast("Paramètres enregistrés avec succès !", "success");
+      actualiserStatsCloud();
     }
 
     function exporterJSON() {
@@ -548,6 +676,7 @@
       reader.readAsText(file, "utf-8");
     }
 
+    window.addEventListener("heures-synced", actualiserStatsCloud);
     charger();
   </script>
 </body>

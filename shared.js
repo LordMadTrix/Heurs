@@ -31,8 +31,235 @@ const DEFAULT_CONFIG = {
   tarif_km_chauffeur: 0,
   tarif_km_accompagnateur: 0,
   nom_entreprise: "",
-  logo_entreprise: ""
+  logo_entreprise: "",
+  nom_ouvrier_defaut: "Petit",
+  prenom_ouvrier_defaut: "Sébastien",
+  gemini_api_key: ""
 };
+
+/**
+ * ==========================================================================
+ * SUPABASE CLOUD SYNCHRONIZATION
+ * ==========================================================================
+ */
+const DEFAULT_SUPABASE_URL = "https://xwjgjwnzafdjrabgvpcy.supabase.co";
+const DEFAULT_SUPABASE_KEY = "sb_publishable_XtDomCqVldj_nhJp21fzaQ_ReK3bdFt";
+
+let _supabaseClient = null;
+let _cloudSyncTimeout = null;
+
+function getSupabaseCredentials() {
+  return {
+    url: (localStorage.getItem("supabase_url") || DEFAULT_SUPABASE_URL).trim(),
+    key: (localStorage.getItem("supabase_key") || DEFAULT_SUPABASE_KEY).trim()
+  };
+}
+
+function getSupabaseClient() {
+  if (_supabaseClient) return _supabaseClient;
+  const { url, key } = getSupabaseCredentials();
+  if (typeof supabase !== "undefined" && supabase.createClient && url && key) {
+    try {
+      _supabaseClient = supabase.createClient(url, key);
+    } catch (e) {
+      console.warn("Impossible d'initialiser le client Supabase:", e);
+    }
+  }
+  return _supabaseClient;
+}
+
+function resetSupabaseClient() {
+  _supabaseClient = null;
+  return getSupabaseClient();
+}
+
+function updateCloudStatusBadge(status = "connected", tooltip = "Synchronisé avec le cloud Supabase") {
+  const dot = document.getElementById("navCloudStatusDot");
+  const icon = document.getElementById("navCloudIcon");
+  const btn = document.getElementById("navCloudSyncBtn");
+  if (!dot || !btn) return;
+
+  dot.className = `cloud-status-dot ${status}`;
+  btn.title = tooltip;
+
+  if (icon) {
+    if (status === "syncing") {
+      icon.classList.add("is-spinning");
+    } else {
+      icon.classList.remove("is-spinning");
+    }
+  }
+}
+
+async function testSupabaseConnection() {
+  const client = getSupabaseClient();
+  if (!client) {
+    return { ok: false, message: "SDK Supabase non chargé ou clé API manquante." };
+  }
+  try {
+    const { data, error } = await client.from("app_config").select("id").limit(1);
+    if (error) throw error;
+    return { ok: true, message: "Connexion réussie à Supabase !" };
+  } catch (err) {
+    console.error("Erreur test Supabase:", err);
+    return { ok: false, message: err.message || "Erreur de connexion à Supabase." };
+  }
+}
+
+async function cloudSaveConfig(config) {
+  const client = getSupabaseClient();
+  if (!client) return false;
+  try {
+    const { error } = await client.from("app_config").upsert({
+      id: "main",
+      data: config,
+      updated_at: new Date().toISOString()
+    });
+    if (error) throw error;
+    return true;
+  } catch (e) {
+    console.warn("Échec sauvegarde config cloud:", e);
+    return false;
+  }
+}
+
+async function cloudFetchConfig() {
+  const client = getSupabaseClient();
+  if (!client) return null;
+  try {
+    const { data, error } = await client.from("app_config").select("data").eq("id", "main").maybeSingle();
+    if (error) throw error;
+    if (data && data.data) {
+      return data.data;
+    }
+  } catch (e) {
+    console.warn("Échec chargement config cloud:", e);
+  }
+  return null;
+}
+
+async function cloudSaveFeuille(key, formData) {
+  const client = getSupabaseClient();
+  if (!client || !key || !formData) return false;
+  try {
+    const parts = key.split("_");
+    const mois = parseInt(formData.mois !== undefined ? formData.mois : parts[2]);
+    const annee = parseInt(formData.annee !== undefined ? formData.annee : parts[3]);
+
+    const { error } = await client.from("feuilles_heures").upsert({
+      key: key,
+      mois: isNaN(mois) ? null : mois,
+      annee: isNaN(annee) ? null : annee,
+      nom: (formData.nom || "").trim(),
+      prenom: (formData.prenom || "").trim(),
+      data: formData,
+      updated_at: new Date().toISOString()
+    });
+    if (error) throw error;
+    return true;
+  } catch (e) {
+    console.warn(`Échec sauvegarde cloud pour ${key}:`, e);
+    return false;
+  }
+}
+
+function debouncedCloudSave(key, formData, delay = 1200) {
+  if (_cloudSyncTimeout) clearTimeout(_cloudSyncTimeout);
+  updateCloudStatusBadge("syncing", "Sauvegarde cloud en cours...");
+
+  _cloudSyncTimeout = setTimeout(async () => {
+    const success = await cloudSaveFeuille(key, formData);
+    if (success) {
+      updateCloudStatusBadge("connected", "Toutes les modifications sont synchronisées sur Supabase");
+    } else {
+      updateCloudStatusBadge("error", "Erreur lors de la synchronisation cloud");
+    }
+  }, delay);
+}
+
+async function cloudDeleteFeuille(key) {
+  const client = getSupabaseClient();
+  if (!client || !key) return false;
+  try {
+    const { error } = await client.from("feuilles_heures").delete().eq("key", key);
+    if (error) throw error;
+    return true;
+  } catch (e) {
+    console.warn(`Échec suppression cloud ${key}:`, e);
+    return false;
+  }
+}
+
+async function cloudFullSync(showToasts = false) {
+  const client = getSupabaseClient();
+  if (!client) {
+    if (showToasts) showToast("Client Supabase indisponible", "error");
+    updateCloudStatusBadge("error", "Supabase déconnecté");
+    return;
+  }
+
+  updateCloudStatusBadge("syncing", "Synchronisation cloud en cours...");
+  let uploaded = 0;
+  let downloaded = 0;
+
+  try {
+    // 1. Synchroniser la configuration
+    const cloudCfg = await cloudFetchConfig();
+    if (cloudCfg && Object.keys(cloudCfg).length > 0) {
+      const localCfg = JSON.parse(localStorage.getItem("heures_config") || "{}");
+      const merged = { ...DEFAULT_CONFIG, ...localCfg, ...cloudCfg };
+      localStorage.setItem("heures_config", JSON.stringify(merged));
+    } else {
+      const localCfg = JSON.parse(localStorage.getItem("heures_config") || "{}");
+      if (Object.keys(localCfg).length > 0) {
+        await cloudSaveConfig(localCfg);
+      }
+    }
+
+    // 2. Récupérer toutes les feuilles distantes
+    const { data: remoteRows, error } = await client.from("feuilles_heures").select("*");
+    if (error) throw error;
+
+    const remoteMap = new Map();
+    if (remoteRows) {
+      remoteRows.forEach(row => {
+        remoteMap.set(row.key, row);
+        const localRaw = localStorage.getItem(row.key);
+        if (!localRaw) {
+          localStorage.setItem(row.key, JSON.stringify(row.data));
+          downloaded++;
+        }
+      });
+    }
+
+    // 3. Envoyer les feuilles locales manquantes vers le cloud
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith("heures_v2_")) {
+        if (!remoteMap.has(k)) {
+          try {
+            const localData = JSON.parse(localStorage.getItem(k));
+            await cloudSaveFeuille(k, localData);
+            uploaded++;
+          } catch (e) {}
+        }
+      }
+    }
+
+    const totalCloud = remoteMap.size + uploaded;
+    updateCloudStatusBadge("connected", `Synchronisé avec Supabase (${totalCloud} feuille${totalCloud > 1 ? 's' : ''})`);
+    if (showToasts) {
+      showToast(`Synchronisation terminée ! (+${uploaded} envoyée${uploaded > 1 ? 's' : ''}, +${downloaded} reçue${downloaded > 1 ? 's' : ''})`, "success");
+    }
+    window.dispatchEvent(new CustomEvent("heures-synced", { detail: { uploaded, downloaded } }));
+  } catch (err) {
+    console.error("Erreur synchronisation globale:", err);
+    updateCloudStatusBadge("error", "Erreur de synchronisation Supabase");
+    if (showToasts) {
+      showToast("Échec de la synchronisation : " + (err.message || "Erreur réseau"), "error");
+    }
+  }
+}
 
 /**
  * Calcul précis des jours fériés légaux belges pour une année donnée
@@ -40,7 +267,6 @@ const DEFAULT_CONFIG = {
 function getBelgianHolidays(annee) {
   const holidays = {};
 
-  // Fêtes fixes
   holidays[`${annee}-01-01`] = "Nouvel An";
   holidays[`${annee}-05-01`] = "Fête du Travail";
   holidays[`${annee}-07-21`] = "Fête Nationale";
@@ -49,7 +275,6 @@ function getBelgianHolidays(annee) {
   holidays[`${annee}-11-11`] = "Armistice";
   holidays[`${annee}-12-25`] = "Noël";
 
-  // Calcul du dimanche de Pâques (Algorithme de Gauss / Meeus)
   const a = annee % 19;
   const b = Math.floor(annee / 100);
   const c = annee % 100;
@@ -62,22 +287,19 @@ function getBelgianHolidays(annee) {
   const k = c % 4;
   const l = (32 + 2 * e + 2 * i - h - k) % 7;
   const m = Math.floor((a + 11 * h + 22 * l) / 451);
-  const month = Math.floor((h + l - 7 * m + 114) / 31); // 3 = Mars, 4 = Avril
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
   const day = ((h + l - 7 * m + 114) % 31) + 1;
 
   const easterDate = new Date(annee, month - 1, day);
 
-  // Lundi de Pâques (+1 jour)
   const easterMonday = new Date(easterDate);
   easterMonday.setDate(easterDate.getDate() + 1);
   holidays[formatDateKey(easterMonday)] = "Lundi de Pâques";
 
-  // Jeudi de l'Ascension (+39 jours)
   const ascension = new Date(easterDate);
   ascension.setDate(easterDate.getDate() + 39);
   holidays[formatDateKey(ascension)] = "Ascension";
 
-  // Lundi de Pentecôte (+50 jours)
   const pentecoteMonday = new Date(easterDate);
   pentecoteMonday.setDate(easterDate.getDate() + 50);
   holidays[formatDateKey(pentecoteMonday)] = "Lundi de Pentecôte";
@@ -125,14 +347,15 @@ function toggleTheme() {
   }
 }
 
-// Initialise le thème dès le chargement du script
 initTheme();
 
 /**
- * Charge la configuration depuis localStorage ou fetch config.json
+ * Charge la configuration depuis Supabase (Cloud First), avec fallback localStorage et config.json
  */
 async function loadConfig() {
   let config = { ...DEFAULT_CONFIG };
+
+  // 1. Lecture du cache local pour affichage instantané
   try {
     const stored = localStorage.getItem("heures_config");
     if (stored) {
@@ -141,21 +364,46 @@ async function loadConfig() {
         parsed.tarif_km_chauffeur = parsed.tarif_km;
       }
       config = { ...DEFAULT_CONFIG, ...parsed };
-    } else {
+    }
+  } catch (e) {
+    console.warn("Erreur lecture cache local config:", e);
+  }
+
+  // 2. Récupération directe depuis la base de données Supabase
+  try {
+    const cloudCfg = await cloudFetchConfig();
+    if (cloudCfg && Object.keys(cloudCfg).length > 0) {
+      config = { ...config, ...cloudCfg };
+      localStorage.setItem("heures_config", JSON.stringify(config));
+      if (config.gemini_api_key) {
+        localStorage.setItem("gemini_api_key", config.gemini_api_key);
+      }
+    } else if (!localStorage.getItem("heures_config")) {
+      // Si la base est encore vide, on tente de charger le config.json initial
       const res = await fetch("config.json");
       if (res.ok) {
         const json = await res.json();
         config = { ...DEFAULT_CONFIG, ...json };
+        localStorage.setItem("heures_config", JSON.stringify(config));
+        // Enregistrer la configuration initiale dans la base Supabase
+        await cloudSaveConfig(config);
       }
     }
-  } catch (e) {
-    console.warn("Utilisation de la configuration par défaut.", e);
+  } catch (err) {
+    console.warn("Connexion cloud indisponible, utilisation du cache local pour la config.", err);
   }
+
   return config;
 }
 
-function saveConfig(config) {
+async function saveConfig(config) {
   localStorage.setItem("heures_config", JSON.stringify(config));
+  if (config.gemini_api_key) {
+    localStorage.setItem("gemini_api_key", config.gemini_api_key);
+  }
+  // Enregistrement immédiat dans la base Supabase
+  const ok = await cloudSaveConfig(config);
+  return ok;
 }
 
 /**
@@ -237,7 +485,7 @@ function showToast(message, type = "info", duration = 3000) {
 }
 
 /**
- * Initialise la barre de navigation universelle avec mode sombre
+ * Initialise la barre de navigation universelle avec mode sombre et indicateur Cloud
  */
 function initNavBar(activePage = "") {
   const isDark = document.documentElement.getAttribute("data-theme") === "dark";
@@ -256,6 +504,11 @@ function initNavBar(activePage = "") {
             <li><a href="import_photo.html" class="nav-link ${activePage === 'import_photo' ? 'active' : ''}">📷 Import IA</a></li>
             <li><a href="config.html" class="nav-link ${activePage === 'config' ? 'active' : ''}">⚙️ Paramètres</a></li>
           </ul>
+          <button type="button" class="cloud-sync-btn" id="navCloudSyncBtn" onclick="cloudFullSync(true)" title="Synchroniser avec le Cloud Supabase">
+            <span class="cloud-status-dot connected" id="navCloudStatusDot"></span>
+            <span id="navCloudIcon" class="cloud-sync-icon">☁️</span>
+            <span>Cloud</span>
+          </button>
           <button type="button" class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="${isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}">
             ${isDark ? '☀️' : '🌙'}
           </button>
@@ -264,6 +517,11 @@ function initNavBar(activePage = "") {
     </nav>
   `;
   document.body.insertAdjacentHTML("afterbegin", navHtml);
+
+  // Synchronisation automatique silencieuse
+  setTimeout(() => {
+    cloudFullSync(false);
+  }, 400);
 }
 
 /**
@@ -302,12 +560,14 @@ function importGlobalBackup(jsonData) {
 
   if (jsonData.config && Object.keys(jsonData.config).length > 0) {
     localStorage.setItem("heures_config", JSON.stringify(jsonData.config));
+    cloudSaveConfig(jsonData.config);
   }
 
   let count = 0;
   Object.entries(jsonData.feuilles).forEach(([key, val]) => {
     if (key.startsWith("heures_v2_")) {
       localStorage.setItem(key, JSON.stringify(val));
+      cloudSaveFeuille(key, val);
       count++;
     }
   });

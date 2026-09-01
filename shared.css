@@ -375,6 +375,80 @@ body {
 }
 
 /* ==========================================================================
+   CLOUD SYNC STATUS (NAVBAR & BADGES)
+   ========================================================================== */
+.cloud-sync-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: var(--transition);
+  user-select: none;
+}
+
+.cloud-sync-btn:hover {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.cloud-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #94a3b8;
+  display: inline-block;
+  transition: background-color 0.3s ease;
+}
+
+.cloud-status-dot.connected {
+  background: var(--success);
+  box-shadow: 0 0 6px var(--success);
+}
+
+.cloud-status-dot.syncing {
+  background: var(--warning);
+  animation: pulseDot 1s infinite alternate;
+}
+
+.cloud-status-dot.error {
+  background: var(--danger);
+}
+
+.cloud-sync-icon.is-spinning {
+  animation: spinIcon 1s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spinIcon {
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pulseDot {
+  0% { opacity: 0.4; transform: scale(0.85); }
+  100% { opacity: 1; transform: scale(1.15); }
+}
+
+.cloud-info-box {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 12px;
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ==========================================================================
    PRINT HELPERS (ALWAYS IN LIGHT MODE)
    ========================================================================== */
 @media print {

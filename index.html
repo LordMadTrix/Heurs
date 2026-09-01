@@ -593,6 +593,7 @@
     <datalist id="chantiers-list"></datalist>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="shared.js"></script>
   <script>
     let _config = { ...DEFAULT_CONFIG };
@@ -899,13 +900,17 @@
 
     function autoSave() {
       if (_activeKey) {
-        localStorage.setItem(_activeKey, JSON.stringify(collectFormData()));
+        const data = collectFormData();
+        localStorage.setItem(_activeKey, JSON.stringify(data));
+        debouncedCloudSave(_activeKey, data);
       }
     }
 
     function switchMonth() {
       if (_activeKey) {
-        localStorage.setItem(_activeKey, JSON.stringify(collectFormData()));
+        const data = collectFormData();
+        localStorage.setItem(_activeKey, JSON.stringify(data));
+        cloudSaveFeuille(_activeKey, data);
       }
       _activeKey = getStorageKey(
         document.getElementById("selectMois").value,
@@ -931,6 +936,9 @@
     /* ===== Actions ===== */
     function ouvrirResume() {
       autoSave();
+      if (_activeKey) {
+        cloudSaveFeuille(_activeKey, collectFormData());
+      }
       localStorage.setItem("heures_resume_key", _activeKey || getStorageKey(
         document.getElementById("selectMois").value,
         document.getElementById("annee").value
@@ -940,20 +948,25 @@
 
     function telechargerJSON() {
       autoSave();
+      const formData = collectFormData();
+      if (_activeKey) {
+        cloudSaveFeuille(_activeKey, formData);
+      }
+
       const nom = (document.getElementById("nom")?.value || "nom").trim();
       const prenom = (document.getElementById("prenom")?.value || "prenom").trim();
       const mois = document.getElementById("selectMois").selectedOptions[0].text;
       const annee = document.getElementById("annee").value || "";
       const filename = `heures_${nom}_${prenom}_${mois}_${annee}.json`.replace(/\s+/g, "_");
 
-      const blob = new Blob([JSON.stringify(collectFormData(), null, 2)], { type: "application/json" });
+      const blob = new Blob([JSON.stringify(formData, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = Object.assign(document.createElement("a"), { href: url, download: filename });
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      showToast("Feuille sauvegardée en JSON !", "success");
+      showToast("Feuille sauvegardée en JSON et synchronisée sur Supabase !", "success");
     }
 
     function importerJSON(event) {
@@ -974,7 +987,8 @@
 
           restoreFormData(data);
           autoSave();
-          showToast("Données importées avec succès !", "success");
+          cloudSaveFeuille(_activeKey, data);
+          showToast("Données importées et synchronisées !", "success");
         } catch (e) {
           showToast("Fichier JSON invalide.", "error");
         }
@@ -985,7 +999,10 @@
 
     function resetForm() {
       if (confirm("Voulez-vous réinitialiser le formulaire pour ce mois ?")) {
-        if (_activeKey) localStorage.removeItem(_activeKey);
+        if (_activeKey) {
+          localStorage.removeItem(_activeKey);
+          cloudDeleteFeuille(_activeKey);
+        }
         clearDailyData();
         updateDateStructure();
         showToast("Tableau réinitialisé", "info");
@@ -1168,7 +1185,28 @@
           restoreFormData(JSON.parse(saved));
         } catch (e) {}
       } else {
+        if (_config.nom_ouvrier_defaut && !document.getElementById("nom").value) {
+          document.getElementById("nom").value = _config.nom_ouvrier_defaut;
+        }
+        if (_config.prenom_ouvrier_defaut && !document.getElementById("prenom").value) {
+          document.getElementById("prenom").value = _config.prenom_ouvrier_defaut;
+        }
         updateDateStructure();
+      }
+    });
+
+    window.addEventListener("heures-synced", () => {
+      if (_activeKey) {
+        const saved = localStorage.getItem(_activeKey);
+        if (saved) {
+          try {
+            // Recharger les données si le formulaire était vide ou non modifié
+            const currentTotal = document.getElementById("totalMois")?.value;
+            if (!currentTotal || currentTotal === "00:00") {
+              restoreFormData(JSON.parse(saved));
+            }
+          } catch (e) {}
+        }
       }
     });
   </script>

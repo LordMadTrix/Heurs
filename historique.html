@@ -312,6 +312,7 @@
     <div id="tableWrapper" class="table-scroll"></div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="shared.js"></script>
   <script>
     let allEntries = [];
@@ -364,10 +365,11 @@
       window.location.href = "index.html";
     }
 
-    function supprimerFeuille(key, label) {
+    async function supprimerFeuille(key, label) {
       if (confirm(`Voulez-vous supprimer définitivement la feuille :\n${label} ?`)) {
         localStorage.removeItem(key);
-        showToast("Feuille supprimée", "info");
+        await cloudDeleteFeuille(key);
+        showToast("Feuille supprimée en local et sur Supabase", "info");
         initHistory();
       }
     }
@@ -553,6 +555,10 @@
 
     window.addEventListener("DOMContentLoaded", () => {
       initNavBar("historique");
+      initHistory();
+    });
+
+    window.addEventListener("heures-synced", () => {
       initHistory();
     });
   </script>

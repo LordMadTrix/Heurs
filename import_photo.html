@@ -304,6 +304,7 @@
 
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="shared.js"></script>
   <script>
     let imageBase64 = null;
@@ -311,9 +312,10 @@
     let extractedData = null;
     let saveTimer = null;
 
-    window.addEventListener("DOMContentLoaded", () => {
+    window.addEventListener("DOMContentLoaded", async () => {
       initNavBar("import_photo");
-      const savedKey = localStorage.getItem("gemini_api_key");
+      const cfg = await loadConfig();
+      const savedKey = cfg.gemini_api_key || localStorage.getItem("gemini_api_key");
       if (savedKey) {
         document.getElementById("apiKey").value = savedKey;
       }
@@ -326,11 +328,14 @@
 
     function sauvegarderCle() {
       clearTimeout(saveTimer);
-      saveTimer = setTimeout(() => {
+      saveTimer = setTimeout(async () => {
         const key = document.getElementById("apiKey").value.trim();
         if (key.length > 10) {
           localStorage.setItem("gemini_api_key", key);
-          showToast("Clé Gemini mémorisée", "success", 2000);
+          const cfg = await loadConfig();
+          cfg.gemini_api_key = key;
+          await saveConfig(cfg);
+          showToast("Clé Gemini mémorisée et synchronisée sur Supabase !", "success", 2500);
         }
       }, 600);
     }
@@ -621,9 +626,10 @@ Règles de parsing strictes :
       Object.assign(merged, extractedData);
 
       localStorage.setItem(key, JSON.stringify(merged));
+      cloudSaveFeuille(key, merged);
       localStorage.setItem("heures_nav", JSON.stringify({ mois, annee }));
 
-      showToast("Données injectées avec succès !", "success");
+      showToast("Données injectées et synchronisées avec succès !", "success");
       setTimeout(() => {
         window.location.href = "index.html";
       }, 500);
