@@ -978,55 +978,163 @@
       showToast("Feuille sauvegardée en JSON et synchronisée sur Supabase !", "success");
     }
 
-    /* ===== Export PDF Direct (1 Clic avec html2pdf) ===== */
-    function telechargerPDFDirect() {
-      const sheet = document.querySelector(".sheet");
-      if (!sheet) return;
+    /* ===== Export PDF Direct (1 Page Blanche Impeccable) ===== */
+    async function telechargerPDFDirect() {
+      showToast("Génération du PDF sur 1 page…", "info", 2000);
 
-      const nom = document.getElementById("nom").value.trim() || "Ouvrier";
-      const prenom = document.getElementById("prenom").value.trim() || "";
+      const nom = document.getElementById("nom").value.trim() || _config.nom_ouvrier_defaut || "Ouvrier";
+      const prenom = document.getElementById("prenom").value.trim() || _config.prenom_ouvrier_defaut || "";
       const moisIdx = parseInt(document.getElementById("selectMois").value);
       const annee = document.getElementById("annee").value || new Date().getFullYear();
       const moisNom = MOIS_NOMS[moisIdx] || "Mois";
       const nomComplet = [nom, prenom].filter(Boolean).join("_");
       const filename = `Feuille_Prestations_${nomComplet}_${moisNom}_${annee}.pdf`.replace(/[\s\/\\:*?"<>|]+/g, "_");
 
-      showToast("Génération du document PDF en cours…", "info", 2000);
+      const daysInMonth = new Date(annee, moisIdx + 1, 0).getDate();
+      const kmMult = _config.km_aller_retour !== false ? 2 : 1;
 
-      const clone = sheet.cloneNode(true);
-      clone.querySelectorAll(".no-print").forEach(el => el.remove());
-      clone.querySelectorAll(".only-print").forEach(el => el.style.display = "flex");
+      // Construire les lignes du tableau
+      let rowsHtml = "";
+      for (let j = 1; j <= daysInMonth; j++) {
+        const type = document.querySelector(`select[name="type_${j}"]`)?.value || "travail";
+        const chantier = document.querySelector(`[name="chantier_${j}"]`)?.value || "";
+        const localite = document.querySelector(`[name="localite_${j}"]`)?.value || "";
+        const kms = document.querySelector(`[name="kms_${j}"]`)?.value || "";
+        const plaque = document.querySelector(`select[name="plaque_${j}"]`)?.value || "";
+        const debut = document.querySelector(`[name="debut_${j}"]`)?.value || "";
+        const fin = document.querySelector(`[name="fin_${j}"]`)?.value || "";
+        const aent = document.querySelector(`[name="aent_${j}"]`)?.value || "";
+        const total = document.getElementById(`total_${j}`)?.value || "";
+        const chauff = document.querySelector(`[name="chauffeur_${j}"]`)?.value || "";
 
-      const originalInputs = sheet.querySelectorAll("input, select");
-      const cloneInputs = clone.querySelectorAll("input, select");
-      originalInputs.forEach((inp, idx) => {
-        if (!cloneInputs[idx]) return;
-        if (inp.tagName === "SELECT") {
-          const selectedText = inp.selectedOptions?.[0]?.text || inp.value;
-          const span = document.createElement("span");
-          span.textContent = selectedText;
-          span.style.fontWeight = "600";
-          span.style.fontSize = "11px";
-          cloneInputs[idx].parentNode?.replaceChild(span, cloneInputs[idx]);
-        } else {
-          cloneInputs[idx].setAttribute("value", inp.value);
-        }
-      });
+        const dateObj = new Date(annee, moisIdx, j);
+        const dayOfWeek = dateObj.getDay();
+        const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+        const ferieName = isBelgianHoliday(j, moisIdx, annee);
+        const jourNom = JOURS_SEMAINE[dayOfWeek];
+
+        let bg = "#ffffff";
+        let labelColor = "#334155";
+        if (ferieName) { bg = "#fee2e2"; labelColor = "#b91c1c"; }
+        else if (type === "conge") { bg = "#e0f2fe"; }
+        else if (type === "maladie") { bg = "#fef3c7"; }
+        else if (type === "intemperies") { bg = "#ede9fe"; }
+        else if (type === "rcr") { bg = "#ecfdf5"; }
+        else if (isWeekend) { bg = "#f8fafc"; labelColor = "#64748b"; }
+
+        const typeLabel = TYPE_OPTIONS[type]?.code || (ferieName ? "FER" : "T");
+
+        rowsHtml += `
+          <tr style="background:${bg}; height:17px;">
+            <td style="text-align:center; font-weight:700; color:${labelColor}; border:1px solid #cbd5e1; padding:1px 2px; font-size:8px;">${j} <span style="font-size:7px; font-weight:400;">(${jourNom})</span></td>
+            <td style="text-align:center; font-weight:700; border:1px solid #cbd5e1; font-size:7.5px;">${escapeHTML(typeLabel)}</td>
+            <td style="border:1px solid #cbd5e1; padding:0 3px; font-size:7.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:140px;">${escapeHTML(chantier)}</td>
+            <td style="border:1px solid #cbd5e1; padding:0 3px; font-size:7.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:85px;">${escapeHTML(localite)}</td>
+            <td style="text-align:center; border:1px solid #cbd5e1; font-size:7.5px;">${escapeHTML(kms)}</td>
+            <td style="text-align:center; border:1px solid #cbd5e1; font-size:7.5px;">${escapeHTML(plaque)}</td>
+            <td style="text-align:center; border:1px solid #cbd5e1; font-size:7.5px;">${escapeHTML(debut)}</td>
+            <td style="text-align:center; border:1px solid #cbd5e1; font-size:7.5px;">${escapeHTML(fin)}</td>
+            <td style="text-align:center; border:1px solid #cbd5e1; font-size:7.5px;">${escapeHTML(aent)}</td>
+            <td style="text-align:center; font-weight:700; border:1px solid #cbd5e1; font-size:8px; color:#0f172a; background:${total ? '#f1f5f9' : 'transparent'};">${escapeHTML(total)}</td>
+            <td style="border:1px solid #cbd5e1; padding:0 3px; font-size:7.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:85px;">${escapeHTML(chauff)}</td>
+          </tr>`;
+      }
+
+      const totalMois = document.getElementById("totalMois")?.value || "00:00";
+      const heuresSup = document.getElementById("heuresSup")?.value || "00:00";
+      const fraisKm = document.getElementById("fraisKm")?.value || "";
+      const tarifActif = (_config.tarif_km_chauffeur || 0) + (_config.tarif_km_accompagnateur || 0) > 0;
+
+      const logoHtml = _config.logo_entreprise
+        ? `<img src="${_config.logo_entreprise}" style="max-height:40px; max-width:130px; object-fit:contain;" />`
+        : (_config.nom_entreprise ? `<div style="font-size:15px; font-weight:800; color:#0f172a;">${escapeHTML(_config.nom_entreprise)}</div>` : "");
+
+      const pdfHtml = `
+        <div style="width:720px; background:#ffffff; color:#000000; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding:10px 12px; box-sizing:border-box;">
+          <!-- En-tête -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #0284c7; padding-bottom:6px; margin-bottom:6px;">
+            <div>${logoHtml}</div>
+            <div style="text-align:center;">
+              <h1 style="margin:0; font-size:14px; font-weight:800; color:#0f172a; text-transform:uppercase; letter-spacing:0.03em;">Feuille de Prestations Mensuelles</h1>
+              <div style="font-size:11px; font-weight:700; color:#0284c7;">${escapeHTML(moisNom.toUpperCase())} ${annee}</div>
+            </div>
+            <div style="text-align:right; font-size:9px; line-height:1.35; color:#1e293b;">
+              <div><strong>Ouvrier :</strong> ${escapeHTML(nom)} ${escapeHTML(prenom)}</div>
+              ${_config.nom_entreprise ? `<div><strong>Entreprise :</strong> ${escapeHTML(_config.nom_entreprise)}</div>` : ""}
+            </div>
+          </div>
+
+          <!-- Tableau -->
+          <table style="width:100%; border-collapse:collapse; font-size:7.5px; border:1px solid #cbd5e1;">
+            <thead>
+              <tr style="background:#f1f5f9; height:17px; font-weight:700; color:#1e293b; text-align:center;">
+                <th style="width:40px; border:1px solid #cbd5e1;">Jour</th>
+                <th style="width:30px; border:1px solid #cbd5e1;">Statut</th>
+                <th style="border:1px solid #cbd5e1;">N° Chantier</th>
+                <th style="width:90px; border:1px solid #cbd5e1;">Localité</th>
+                <th style="width:50px; border:1px solid #cbd5e1;">Kms ${kmMult > 1 ? "(A/R)" : ""}</th>
+                <th style="width:62px; border:1px solid #cbd5e1;">Plaque</th>
+                <th style="width:38px; border:1px solid #cbd5e1;">Début</th>
+                <th style="width:38px; border:1px solid #cbd5e1;">Fin</th>
+                <th style="width:38px; border:1px solid #cbd5e1;">A/Ent</th>
+                <th style="width:42px; border:1px solid #cbd5e1; background:#e2e8f0;">Total</th>
+                <th style="width:85px; border:1px solid #cbd5e1;">Chauffeur</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+            <tfoot>
+              <tr style="background:#f8fafc; font-weight:700; height:17px;">
+                <td colspan="9" style="text-align:right; border:1px solid #cbd5e1; padding:0 6px; font-size:8px;">Total des heures prestées :</td>
+                <td style="text-align:center; border:1px solid #cbd5e1; font-size:8.5px; color:#0f172a; background:#e2e8f0;">${escapeHTML(totalMois)}</td>
+                <td style="border:1px solid #cbd5e1;"></td>
+              </tr>
+              <tr style="background:#f8fafc; font-weight:700; height:17px;">
+                <td colspan="9" style="text-align:right; border:1px solid #cbd5e1; padding:0 6px; font-size:8px;">Heures supplémentaires :</td>
+                <td style="text-align:center; border:1px solid #cbd5e1; font-size:8.5px; color:#c026d3; background:#fae8ff;">${escapeHTML(heuresSup)}</td>
+                <td style="border:1px solid #cbd5e1;"></td>
+              </tr>
+              ${tarifActif ? `
+              <tr style="background:#f8fafc; font-weight:700; height:17px;">
+                <td colspan="9" style="text-align:right; border:1px solid #cbd5e1; padding:0 6px; font-size:8px;">Frais kilométriques (${kmMult > 1 ? "Aller-Retour" : "Total"}) :</td>
+                <td style="text-align:center; border:1px solid #cbd5e1; font-size:8.5px; color:#059669; background:#d1fae5;">${escapeHTML(fraisKm)}</td>
+                <td style="border:1px solid #cbd5e1;"></td>
+              </tr>` : ""}
+            </tfoot>
+          </table>
+
+          <!-- Signatures -->
+          <div style="display:flex; justify-content:space-between; margin-top:8px; padding-top:4px; font-size:8px; color:#334155;">
+            <div style="width:45%; border-top:1px dashed #94a3b8; padding-top:3px; min-height:26px;">
+              <strong>Date &amp; Signature de l'ouvrier :</strong>
+            </div>
+            <div style="width:45%; border-top:1px dashed #94a3b8; padding-top:3px; min-height:26px;">
+              <strong>Date &amp; Signature du responsable :</strong>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const wrapper = document.createElement("div");
+      wrapper.innerHTML = pdfHtml;
+      const pdfEl = wrapper.firstElementChild;
 
       const opt = {
-        margin: [8, 6, 8, 6],
+        margin: [4, 4, 4, 4],
         filename: filename,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
 
-      html2pdf().set(opt).from(clone).save().then(() => {
-        showToast("✅ PDF téléchargé avec succès !", "success");
-      }).catch(err => {
-        console.warn("Erreur export PDF direct, bascule impression:", err);
+      try {
+        await html2pdf().set(opt).from(pdfEl).save();
+        showToast("✅ PDF 1 page téléchargé avec succès !", "success");
+      } catch (err) {
+        console.error("Erreur export PDF:", err);
         window.print();
-      });
+      }
     }
 
     /* ===== Multi-profils / Équipe ===== */
