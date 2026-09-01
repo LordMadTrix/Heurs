@@ -337,10 +337,14 @@
           <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Recommandé - Ultra rapide & précis)</option>
           <option value="gemini-1.5-flash">Gemini 1.5 Flash (Fallback)</option>
         </select>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:8px;">
+        <button class="btn primary lg" id="analyzeBtn" onclick="analyserDocument()" style="flex:1; min-width:220px;">
+          🤖 Analyser avec l'IA Gemini
+        </button>
+        <button class="btn success lg" id="directPdfBtn" onclick="analyserPDFDirectement()" style="display:none; flex:1; min-width:220px;">
+          ⚡ Extraction directe (Sans IA)
+        </button>
       </div>
-      <button class="btn primary lg" id="analyzeBtn" onclick="analyserDocument()" style="width:100%;">
-        🔍 Analyser et extraire les heures avec l'IA
-      </button>
     </div>
 
     <!-- Résultats -->
@@ -351,9 +355,14 @@
 
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="shared.js"></script>
   <script>
+    if (typeof pdfjsLib !== "undefined") {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+    let pdfArrayBuffer = null;
     let imageBase64 = null;
     let imageMime = null;
     let extractedData = null;
@@ -415,10 +424,14 @@
       if (isPdf) {
         // Traitement Document PDF
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
           const [header, b64] = e.target.result.split(",");
           imageBase64 = b64;
           imageMime = "application/pdf";
+
+          try {
+            pdfArrayBuffer = await file.arrayBuffer();
+          } catch (err) {}
 
           document.getElementById("pdfFileName").textContent = file.name;
           document.getElementById("pdfFileSize").textContent = `${(file.size / 1024).toFixed(1)} Ko · Document PDF`;
@@ -429,12 +442,14 @@
           document.getElementById("uploadZone").style.display = "none";
           document.getElementById("analyzeCard").style.display = "block";
           document.getElementById("resultsCard").style.display = "none";
-          document.getElementById("analyzeBtn").innerHTML = "🔍 Analyser le document PDF avec l'IA";
+          document.getElementById("directPdfBtn").style.display = "inline-flex";
+          document.getElementById("analyzeBtn").innerHTML = "🤖 Analyser avec l'IA Gemini";
           extractedData = null;
         };
         reader.readAsDataURL(file);
       } else {
         // Traitement Image / Photo / Scan
+        pdfArrayBuffer = null;
         imageRotation = 0;
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -442,12 +457,127 @@
           rawImg.onload = () => {
             document.getElementById("imagePreviewContainer").style.display = "block";
             document.getElementById("pdfPreviewContainer").style.display = "none";
+            document.getElementById("directPdfBtn").style.display = "none";
             traiterEtAfficherImage(rawImg);
-            document.getElementById("analyzeBtn").innerHTML = "🔍 Analyser la photo avec l'IA";
+            document.getElementById("analyzeBtn").innerHTML = "🤖 Analyser la photo avec l'IA";
           };
           rawImg.src = e.target.result;
         };
         reader.readAsDataURL(file);
+      }
+    }
+
+    /* ===== Extraction Directe de Texte Brut depuis le PDF (Sans IA) ===== */
+    async function analyserPDFDirectement() {
+      if (!pdfArrayBuffer) {
+        showToast("Fichier PDF introuvable.", "warning");
+        return;
+      }
+
+      const btn = document.getElementById("directPdfBtn");
+      btn.disabled = true;
+      btn.textContent = "Extraction brute du texte…";
+
+      document.getElementById("resultsCard").style.display = "block";
+      document.getElementById("resultsContent").innerHTML = `
+        <div class="loader-wrap">
+          <div class="spinner"></div>
+          <div class="loader-text">Extraction des colonnes et données brutes du PDF…</div>
+        </div>`;
+
+      try {
+        const loadingTask = pdfjsLib.getDocument({ data: pdfArrayBuffer });
+        const pdf = await loadingTask.promise;
+
+        let fullText = "";
+        const lines = [];
+
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+          const page = await pdf.getPage(pageNum);
+          const textContent = await page.getTextContent();
+          
+          let lastY = null;
+          let currentLine = "";
+
+          textContent.items.forEach(item => {
+            const y = Math.round(item.transform[5]);
+            if (lastY !== null && Math.abs(y - lastY) > 4) {
+              if (currentLine.trim()) lines.push(currentLine.trim());
+              currentLine = "";
+            }
+            currentLine += " " + item.str;
+            lastY = y;
+            fullText += item.str + " ";
+          });
+          if (currentLine.trim()) lines.push(currentLine.trim());
+        }
+
+        console.log("Texte extrait du PDF:", lines);
+
+        if (!fullText.trim() || fullText.trim().length < 15) {
+          throw new Error("Ce document PDF ne contient pas de texte brut numérique (il s'agit probablement d'une image ou d'un scan). Utilisez le bouton '🤖 Analyser avec l'IA Gemini'.");
+        }
+
+        const data = {};
+
+        // 1. Ouvrier (Nom & Prénom)
+        const nomMatch = fullText.match(/(?:nom\s*:?|ouvrier\s*:?)\s*([A-Za-zÀ-ÿ\-]+)/i);
+        if (nomMatch) data.nom = nomMatch[1].trim();
+
+        const prenomMatch = fullText.match(/(?:prénom\s*:?|prenom\s*:?)\s*([A-Za-zÀ-ÿ\-]+)/i);
+        if (prenomMatch) data.prenom = prenomMatch[1].trim();
+
+        // 2. Mois & Année
+        for (let m = 0; m < MOIS_NOMS.length; m++) {
+          if (new RegExp(`\\b${MOIS_NOMS[m]}\\b`, "i").test(fullText)) {
+            data.selectMois = m;
+            break;
+          }
+        }
+        const anneeMatch = fullText.match(/\b(20\d{2})\b/);
+        if (anneeMatch) data.annee = anneeMatch[1];
+
+        // 3. Extraction des jours (1 à 31)
+        for (let j = 1; j <= 31; j++) {
+          // Chercher une ligne commençant par le numéro du jour ou contenant le jour
+          const timeRegex = /\b(\d{1,2}:\d{2})\b/g;
+          for (const line of lines) {
+            const dayMatch = line.match(new RegExp(`^${j}\\b`)) || line.match(new RegExp(`\\bJour\\s*${j}\\b`, "i"));
+            if (dayMatch) {
+              const times = [...line.matchAll(timeRegex)].map(m => m[1]);
+              if (times.length >= 2) {
+                data[`debut_${j}`] = times[0];
+                data[`fin_${j}`] = times[1];
+                if (times.length >= 3) data[`total_${j}`] = times[times.length - 1];
+              }
+              // Détecter les kilomètres
+              const kmMatch = line.match(/(\d+(?:[.,]\d+)?)\s*(?:km|kms)/i);
+              if (kmMatch) data[`kms_${j}`] = kmMatch[1].replace(",", ".");
+            }
+          }
+        }
+
+        // Vérifier si des données ont été détectées
+        const hasDays = Object.keys(data).some(k => k.startsWith("debut_") || k.startsWith("total_") || k.startsWith("chantier_"));
+        if (!hasDays && !data.nom && !data.annee) {
+          throw new Error("Structure de tableau non reconnue automatiquement. Utilisez le bouton '🤖 Analyser avec l'IA Gemini' pour une extraction intelligente.");
+        }
+
+        extractedData = data;
+        afficherResultats(extractedData);
+        showToast("Données brutes extraites directement du PDF !", "success");
+
+      } catch (err) {
+        console.warn("Extraction directe impossible:", err);
+        document.getElementById("resultsContent").innerHTML = `
+          <div class="error-box">
+            <strong>ℹ️ Information :</strong> ${escapeHTML(err.message)}<br><br>
+            👉 Cliquez sur le bouton bleu <strong>« 🤖 Analyser avec l'IA Gemini »</strong> ci-dessus pour que l'IA déchiffre automatiquement le document.
+          </div>`;
+        showToast("Utilisez l'analyse IA pour ce type de PDF", "info");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = "⚡ Extraction directe (Sans IA)";
       }
     }
 
