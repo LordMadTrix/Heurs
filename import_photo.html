@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>Import Photo IA — Heures Mensuelles</title>
+  <title>Import Photo &amp; PDF IA — Heures Mensuelles</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -138,6 +138,38 @@
       display: block;
     }
 
+    .pdf-preview-box {
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+
+    .pdf-preview-icon {
+      font-size: 38px;
+    }
+
+    .pdf-preview-info {
+      flex: 1;
+    }
+
+    .pdf-preview-name {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text-main);
+      word-break: break-all;
+    }
+
+    .pdf-preview-size {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
     .preview-change {
       position: absolute;
       top: 10px;
@@ -239,7 +271,7 @@
   <div class="container">
 
     <div class="header-row">
-      <h1>📷 Lecture Automatique par Photo (IA)</h1>
+      <h1>📷 Lecture Automatique par Photo &amp; PDF (IA)</h1>
       <a href="index.html" class="btn secondary sm">← Saisie manuelle</a>
     </div>
 
@@ -253,32 +285,47 @@
       <p class="api-hint">
         Obtenez votre clé gratuite sur
         <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">aistudio.google.com</a>
-        — elle reste enregistrée localement dans votre navigateur.
+        — elle est automatiquement synchronisée sur votre base de données.
       </p>
     </div>
 
-    <!-- Étape 2 : Photo -->
+    <!-- Étape 2 : Photo ou PDF -->
     <div class="card">
-      <h2>Étape 2 — Photo ou Scan de la feuille d'heures</h2>
+      <h2>Étape 2 — Photo, Scan ou Fichier PDF</h2>
       <div class="upload-zone" id="uploadZone"
         onclick="document.getElementById('photoInput').click()"
         ondragover="onDragOver(event)"
         ondragleave="onDragLeave(event)"
         ondrop="onDrop(event)">
         <span class="upload-icon">📄</span>
-        <span class="upload-label">Cliquez pour prendre une photo ou choisir un fichier</span>
-        <span class="upload-sub">Fichier photo, scan, image (JPG, PNG, WEBP)</span>
+        <span class="upload-label">Cliquez pour choisir un fichier ou prendre une photo</span>
+        <span class="upload-sub">Fichier photo (JPG, PNG, WEBP) ou document PDF (.pdf)</span>
       </div>
 
       <div class="preview-wrap" id="previewWrap">
-        <img id="preview" alt="Aperçu de la fiche" />
-        <div style="display:flex; gap:8px; margin-top:10px; justify-content:center; flex-wrap:wrap;">
-          <button type="button" class="btn secondary sm" onclick="fairePivoterImage()">🔄 Faire pivoter (90°)</button>
-          <button type="button" class="btn secondary sm" onclick="document.getElementById('photoInput').click()">Changer la photo</button>
+        <div id="imagePreviewContainer">
+          <img id="preview" alt="Aperçu de la fiche" />
+          <div style="display:flex; gap:8px; margin-top:10px; justify-content:center; flex-wrap:wrap;">
+            <button type="button" class="btn secondary sm" onclick="fairePivoterImage()">🔄 Faire pivoter (90°)</button>
+            <button type="button" class="btn secondary sm" onclick="document.getElementById('photoInput').click()">Changer le fichier</button>
+          </div>
+        </div>
+
+        <div id="pdfPreviewContainer" style="display:none;">
+          <div class="pdf-preview-box">
+            <div class="pdf-preview-icon">📄</div>
+            <div class="pdf-preview-info">
+              <div class="pdf-preview-name" id="pdfFileName">document.pdf</div>
+              <div class="pdf-preview-size" id="pdfFileSize">Document PDF prêt pour analyse</div>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; margin-top:10px; justify-content:center;">
+            <button type="button" class="btn secondary sm" onclick="document.getElementById('photoInput').click()">Changer le document PDF</button>
+          </div>
         </div>
       </div>
 
-      <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="onFileChange(event)" />
+      <input type="file" id="photoInput" accept="image/*,application/pdf,.pdf" style="display:none" onchange="onFileChange(event)" />
     </div>
 
     <!-- Étape 3 : Analyse -->
@@ -291,7 +338,7 @@
           <option value="gemini-1.5-flash">Gemini 1.5 Flash (Fallback)</option>
         </select>
       </div>
-      <button class="btn primary lg" id="analyzeBtn" onclick="analyserPhoto()" style="width:100%;">
+      <button class="btn primary lg" id="analyzeBtn" onclick="analyserDocument()" style="width:100%;">
         🔍 Analyser et extraire les heures avec l'IA
       </button>
     </div>
@@ -342,10 +389,10 @@
 
     let imageRotation = 0;
 
-    /* ===== Gestion de l'image & Redimensionnement Canvas ===== */
+    /* ===== Gestion des Fichiers (Images & PDF) ===== */
     function onFileChange(event) {
       const file = event.target.files?.[0];
-      if (file) chargerImage(file);
+      if (file) chargerFichier(file);
     }
 
     function onDragOver(e) {
@@ -359,20 +406,49 @@
       e.preventDefault();
       document.getElementById("uploadZone").classList.remove("drag-over");
       const file = e.dataTransfer.files?.[0];
-      if (file && file.type.startsWith("image/")) chargerImage(file);
+      if (file) chargerFichier(file);
     }
 
-    function chargerImage(file) {
-      imageRotation = 0;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const rawImg = new Image();
-        rawImg.onload = () => {
-          traiterEtAfficherImage(rawImg);
+    function chargerFichier(file) {
+      const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+
+      if (isPdf) {
+        // Traitement Document PDF
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const [header, b64] = e.target.result.split(",");
+          imageBase64 = b64;
+          imageMime = "application/pdf";
+
+          document.getElementById("pdfFileName").textContent = file.name;
+          document.getElementById("pdfFileSize").textContent = `${(file.size / 1024).toFixed(1)} Ko · Document PDF`;
+
+          document.getElementById("imagePreviewContainer").style.display = "none";
+          document.getElementById("pdfPreviewContainer").style.display = "block";
+          document.getElementById("previewWrap").style.display = "block";
+          document.getElementById("uploadZone").style.display = "none";
+          document.getElementById("analyzeCard").style.display = "block";
+          document.getElementById("resultsCard").style.display = "none";
+          document.getElementById("analyzeBtn").innerHTML = "🔍 Analyser le document PDF avec l'IA";
+          extractedData = null;
         };
-        rawImg.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
+        reader.readAsDataURL(file);
+      } else {
+        // Traitement Image / Photo / Scan
+        imageRotation = 0;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const rawImg = new Image();
+          rawImg.onload = () => {
+            document.getElementById("imagePreviewContainer").style.display = "block";
+            document.getElementById("pdfPreviewContainer").style.display = "none";
+            traiterEtAfficherImage(rawImg);
+            document.getElementById("analyzeBtn").innerHTML = "🔍 Analyser la photo avec l'IA";
+          };
+          rawImg.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
     }
 
     function fairePivoterImage() {
@@ -425,8 +501,8 @@
       extractedData = null;
     }
 
-    /* ===== Appel de l'API Gemini ===== */
-    async function analyserPhoto() {
+    /* ===== Appel de l'API Gemini (Support Photo & PDF) ===== */
+    async function analyserDocument() {
       const apiKey = (document.getElementById("apiKey").value || localStorage.getItem("gemini_api_key") || "").trim();
       if (!apiKey) {
         showToast("Veuillez d'abord renseigner votre clé API Gemini.", "warning");
@@ -434,24 +510,24 @@
         return;
       }
       if (!imageBase64) {
-        showToast("Veuillez d'abord choisir une photo.", "warning");
+        showToast("Veuillez d'abord choisir une photo ou un fichier PDF.", "warning");
         return;
       }
 
       const model = document.getElementById("modelSelect").value || "gemini-2.5-flash";
       const btn = document.getElementById("analyzeBtn");
       btn.disabled = true;
-      btn.textContent = "Analyse de la fiche en cours…";
+      btn.textContent = "Analyse du document en cours…";
 
       document.getElementById("resultsCard").style.display = "block";
       document.getElementById("resultsContent").innerHTML = `
         <div class="loader-wrap">
           <div class="spinner"></div>
-          <div class="loader-text">Gemini analyse l'image et déchiffre les lignes…</div>
+          <div class="loader-text">Gemini analyse le document et extrait les prestations ligne par ligne…</div>
         </div>`;
 
-      const prompt = `Tu es un expert OCR spécialisé dans la lecture de feuilles de prestations d'heures de chantier.
-Analyse cette image et extrais toutes les informations ligne par ligne.
+      const prompt = `Tu es un expert OCR et extraction de données spécialisé dans la lecture de feuilles de prestations d'heures de chantier (documents PDF, tableaux, photos ou scans).
+Analyse ce document et extrais toutes les informations ligne par ligne pour chaque jour du mois.
 Réponds UNIQUEMENT par un objet JSON valide.
 
 Format JSON attendu :
@@ -463,12 +539,12 @@ Format JSON attendu :
   "chantier_1": "Description", "localite_1": "Ville", "kms_1": "10",
   "plaque_1": "1-ABC-123", "debut_1": "07:00", "fin_1": "16:00",
   "aent_1": "00:00", "total_1": "08:30", "chauffeur_1": "Nom",
-  ... (pour chaque jour présent)
+  ... (pour chaque jour présent dans la feuille)
 }
 
 Règles de parsing strictes :
 - selectMois : entier de 0 à 11 (0=Janvier, 1=Février, 2=Mars, 3=Avril, 4=Mai, 5=Juin, 6=Juillet, 7=Août, 8=Septembre, 9=Octobre, 10=Novembre, 11=Décembre)
-- annee : chaîne "YYYY"
+- annee : chaîne "YYYY" (ex: "2026")
 - Heures au format strict "HH:MM" (ex: "07:00", "16:30")
 - kms : nombre décimal simple (ex: "12.5")
 - N'utilise aucun guillemet double à l'intérieur des valeurs texte.

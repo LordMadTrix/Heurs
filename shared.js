@@ -510,7 +510,7 @@ function initNavBar(activePage = "") {
             <li><a href="index.html" class="nav-link ${activePage === 'index' ? 'active' : ''}">📅 Saisie</a></li>
             <li><a href="historique.html" class="nav-link ${activePage === 'historique' ? 'active' : ''}">📋 Historique</a></li>
             <li><a href="resume.html" class="nav-link ${activePage === 'resume' ? 'active' : ''}">📊 Résumé</a></li>
-            <li><a href="import_photo.html" class="nav-link ${activePage === 'import_photo' ? 'active' : ''}">📷 Import IA</a></li>
+            <li><a href="import_photo.html" class="nav-link ${activePage === 'import_photo' ? 'active' : ''}">📷 Import Photo / PDF</a></li>
             <li><a href="config.html" class="nav-link ${activePage === 'config' ? 'active' : ''}">⚙️ Paramètres</a></li>
           </ul>
           <button type="button" class="cloud-sync-btn" id="navCloudSyncBtn" onclick="cloudFullSync(true)" title="Synchroniser avec le Cloud Supabase">
